@@ -1,0 +1,15 @@
+# Move to a real server (any VPS with Docker):  docker compose up -d --build
+# Data persists in the "techet-data" volume. Put Caddy/Nginx in front for HTTPS (see README).
+services:
+  techet-pay:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      TECHET_BASE_URL: ${TECHET_BASE_URL:-}      # e.g. https://pay.yourdomain.com
+      TECHET_FEE_BPS: ${TECHET_FEE_BPS:-250}
+    volumes:
+      - techet-data:/data
+volumes:
+  techet-data:

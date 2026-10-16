@@ -1,0 +1,70 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: "Server address baked into the app (https://...)"
+        required: false
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        working-directory: android
+        env:
+          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL || 'https://techet-pay.onrender.com' }}
+        run: ./gradlew --no-daemon :app:assembleDebug -PserverUrl="$SERVER_URL"
+
+      - name: Collect APK
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/TechET-Pay.apk
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TechET-Pay-apk
+          path: dist/TechET-Pay.apk
+
+      - name: Move the apk-latest tag to this commit
+        run: |
+          git tag -f apk-latest
+          git push -f origin apk-latest
+
+      - name: Publish release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: TechET Pay Android APK (latest)
+          body: |
+            Debug-signed APK of the TechET Pay merchant app.
+            Install: download TechET-Pay.apk on your phone, open it, and allow "install unknown apps" for your browser/files app when asked.
+          files: dist/TechET-Pay.apk

@@ -1,0 +1,18 @@
+# Render Blueprint: deploys the Go server from ./server/Dockerfile on the FREE plan.
+services:
+  - type: web
+    name: techet-pay
+    runtime: docker
+    plan: free
+    region: frankfurt          # closest Render region to Ethiopia
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      # Free Upstash Redis database (console.upstash.com, no card needed).
+      # Render asks you for these two values when you create the Blueprint.
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false

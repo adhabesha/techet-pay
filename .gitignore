@@ -1,0 +1,13 @@
+*.exe
+techet-data.json*
+server/techet
+.idea/
+.vscode/
+node_modules/
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+*.apk
+dist/

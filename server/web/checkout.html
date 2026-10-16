@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secure checkout · TechET Pay</title>
+<link rel="icon" href="/assets/logo.svg">
+<link rel="stylesheet" href="/assets/techet.css">
+<style>
+  .wrap{max-width:460px;margin:0 auto;padding:22px 16px 40px}
+  .methods{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .m{border:1px solid rgba(255,255,255,.9);border-radius:22px;padding:14px 6px 10px;background:linear-gradient(145deg,rgba(255,255,255,.8),rgba(255,255,255,.35));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:700;font-size:12.5px}
+  .m i{width:46px;height:46px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 55%),linear-gradient(160deg,var(--blue-500),var(--navy-900));border:1px solid rgba(255,255,255,.4);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:800}
+  .m[aria-pressed=true]{border-color:var(--blue-500);box-shadow:0 0 0 4px rgba(47,134,224,.22);background:linear-gradient(145deg,rgba(220,235,250,.95),rgba(142,193,242,.5))}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hint{background:linear-gradient(145deg,rgba(220,235,250,.85),rgba(187,217,243,.5));border:1px solid rgba(255,255,255,.8);border-radius:16px;padding:11px 13px;font-size:13px;color:var(--navy-800);margin-top:12px}
+  .state{text-align:center;padding:8px 0}
+  .badge{width:72px;height:72px;border-radius:50%;margin:4px auto 14px;display:grid;place-items:center;font-size:34px;color:#fff}
+  .badge.ok{background:var(--ok)} .badge.no{background:var(--bad)}
+  .state h2{margin:0 0 6px} .state p{color:var(--muted);margin:4px 0}
+  a.btn{text-decoration:none;margin-top:18px}
+  .foot{text-align:center;color:var(--muted);font-size:12.5px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap stack">
+  <div class="brand"><img src="/assets/logo.svg" alt="">TechET Pay <span class="tag">SANDBOX</span></div>
+  <div id="hero" class="hero"><div class="lbl">Loading secure checkout…</div></div>
+  <div class="glass" id="card" hidden></div>
+  <div class="foot">🔒 Sandbox mode: payments are simulated and no real money moves.</div>
+</div>
+<script>
+const token = location.pathname.split('/')[2];
+const $ = (s, el=document) => el.querySelector(s);
+const hero = $('#hero'), card = $('#card');
+let info = null, method = null;
+
+function el(tag, props={}, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(props)){
+    if (k==='class') e.className=v; else if (k.startsWith('on')) e.addEventListener(k.slice(2),v); else if (v===true) e.setAttribute(k,''); else if (v!==false && v!=null) e.setAttribute(k,v);
+  }
+  for (const k of kids.flat()) if (k!=null) e.append(k);
+  return e;
+}
+async function api(path, body){
+  const r = await fetch('/checkout/'+token+path, body ? {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)} : {});
+  const j = await r.json().catch(()=>({message:'Network error'}));
+  if (!r.ok) throw new Error(j.message || 'Something went wrong');
+  return j.data;
+}
+function amountEl(v, cur){
+  const [w, d='00'] = String(v).split('.');
+  return el('div',{class:'amt'}, Number(w).toLocaleString('en-US'), el('span',{class:'dec'}, '.'+d), el('span',{class:'cur'}, cur));
+}
+function setHero(){
+  hero.replaceChildren(
+    el('div',{class:'lbl'}, 'Pay ' + info.merchant + (info.title ? ' · '+info.title : '')),
+    amountEl(info.amount, info.currency),
+    el('div',{class:'chips'}, el('span',{class:'chip'}, '🔒 Secure checkout'), info.description ? el('span',{class:'chip'}, info.description) : null));
+}
+function result(ok){
+  const wrap = el('div',{class:'state'},
+    el('div',{class:'badge '+(ok?'ok':'no')}, ok?'✓':'✕'),
+    el('h2',{}, ok?'Payment successful':'Payment failed'),
+    el('p',{}, ok ? 'Reference '+info.reference : (info.fail_reason||'The payment could not be completed.')),
+    ok ? el('p',{}, 'Paid with '+info.method+' '+(info.account||'')) : null);
+  if (info.return_url) wrap.append(el('a',{class:'btn',href:info.return_url,rel:'noopener'}, 'Return to '+info.merchant));
+  card.replaceChildren(wrap);
+}
+function render(){
+  setHero(); card.hidden = false;
+  if (info.status==='success') return result(true);
+  if (info.status==='failed') return result(false);
+  if (info.stage==='otp') return otpView();
+  payView();
+}
+const INITIALS = {telebirr:'TB', cbebirr:'CB', mpesa:'MP', amole:'AM', card:'💳'};
+function payView(){
+  const grid = el('div',{class:'methods'});
+  info.methods.forEach(m=>grid.append(
+    el('button',{class:'m',type:'button','aria-pressed':String(method===m.code),onclick:()=>{method=m.code;payView();}},
+      el('i',{}, INITIALS[m.code]||m.name[0]), m.name.replace('Debit / Credit card','Card'))));
+  const form = el('form',{onsubmit:submit});
+  const err = el('div',{class:'msg bad',id:'err',role:'alert'});
+  if (method){
+    const m = info.methods.find(x=>x.code===method);
+    if (m.kind==='wallet'){
+      form.append(el('label',{for:'phone'},'Your '+m.name+' phone number'),
+        el('input',{id:'phone',name:'phone',inputmode:'tel',autocomplete:'tel',placeholder:'09 11 22 33 44',required:true}),
+        el('div',{class:'hint'},'Sandbox: any valid number works. A number ending in 0000 simulates an empty wallet.'));
+    } else {
+      form.append(el('label',{for:'cn'},'Card number'),
+        el('input',{id:'cn',name:'card_number',inputmode:'numeric',autocomplete:'cc-number',placeholder:'4242 4242 4242 4242',required:true}),
+        el('div',{class:'row2'},
+          el('div',{},el('label',{for:'ex'},'Expiry'),el('input',{id:'ex',name:'expiry',autocomplete:'cc-exp',placeholder:'MM/YY',required:true})),
+          el('div',{},el('label',{for:'cv'},'CVC'),el('input',{id:'cv',name:'cvc',inputmode:'numeric',autocomplete:'cc-csc',placeholder:'123',required:true}))),
+        el('div',{class:'hint'},'Sandbox: 4242 4242 4242 4242, any future expiry, any CVC. 4000 0000 0000 0002 is always declined.'));
+    }
+    form.append(err, el('button',{class:'btn block',type:'submit',id:'go'}, 'Pay '+Number(info.amount).toLocaleString('en-US',{minimumFractionDigits:2})+' '+info.currency));
+  }
+  card.replaceChildren(el('h3',{},'Choose how to pay'), grid, form);
+}
+async function submit(e){
+  e.preventDefault();
+  const f = Object.fromEntries(new FormData(e.target)); f.method = method;
+  const b = $('#go'); b.disabled = true;
+  try { await api('/pay', f); info = await api('/info'); render(); }
+  catch(x){ $('#err').textContent = x.message; b.disabled = false; }
+}
+function otpView(){
+  const form = el('form',{onsubmit:async ev=>{
+    ev.preventDefault(); const b=$('#vb'); b.disabled=true;
+    try{ await api('/confirm',{otp:new FormData(ev.target).get('otp')}); info=await api('/info'); render(); }
+    catch(x){ $('#err').textContent=x.message; b.disabled=false; }
+  }},
+    el('label',{for:'otp'},'Confirmation code'),
+    el('input',{id:'otp',name:'otp',inputmode:'numeric',autocomplete:'one-time-code',maxlength:'6',placeholder:'123456',required:true}),
+    el('div',{class:'hint'},'We sent a code to '+info.account+'. Sandbox code: 123456'),
+    el('div',{class:'msg bad',id:'err',role:'alert'}),
+    el('button',{class:'btn block',type:'submit',id:'vb'},'Confirm payment'));
+  card.replaceChildren(el('h3',{},'Confirm it’s you'), form);
+  $('#otp').focus();
+}
+(async()=>{
+  try { info = await api('/info'); render(); }
+  catch(x){
+    hero.replaceChildren(el('div',{class:'lbl'},'TechET Pay'), el('div',{class:'amt'},'Link not found'));
+    card.hidden=false; card.replaceChildren(el('div',{class:'state'}, el('p',{},x.message)));
+  }
+})();
+</script>
+</body>
+</html>

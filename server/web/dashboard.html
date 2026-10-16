@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TechET Pay · Merchant dashboard</title>
+<link rel="icon" href="/assets/logo.svg">
+<link rel="stylesheet" href="/assets/techet.css">
+</head>
+<body>
+<div id="root"></div>
+<script>
+const root = document.getElementById('root');
+let token = sessionStorage.getItem('tp_token') || '';
+let me = null, tab = 'home', revealKey = null, cache = {}, payFilter = 'all', bank = null;
+
+/* ---------- helpers ---------- */
+function el(tag, props={}, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(props)){
+    if (k==='class') e.className=v; else if (k.startsWith('on')) e.addEventListener(k.slice(2),v); else if (v===true) e.setAttribute(k,''); else if (v!==false && v!=null) e.setAttribute(k,v);
+  }
+  for (const k of kids.flat()) if (k!=null) e.append(k);
+  return e;
+}
+const ICONS = {
+  home:'M3 11l9-8 9 8M5 10v10h14V10',
+  list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  send:'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
+  user:'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z',
+  plus:'M12 5v14M5 12h14',
+  link:'M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1',
+  key:'M21 2l-2 2m-7.6 7.6a5.5 5.5 0 11-7.8 7.8 5.5 5.5 0 017.8-7.8zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
+  refresh:'M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0114.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0020.5 15',
+  out:'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9'
+};
+function icon(name){
+  const s = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none'); s.setAttribute('stroke-width','2'); s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d', ICONS[name]); s.append(p); return s;
+}
+async function api(path, body){
+  const opt = {headers:{'Authorization':'Bearer '+token}};
+  if (body!==undefined){ opt.method='POST'; opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(()=>({message:'Network error'}));
+  if (r.status===401 && token && !path.startsWith('/dash/login')){ signOutLocal(); }
+  if (!r.ok) throw new Error(j.message||'Request failed');
+  return j.data;
+}
+const etb = v => Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const when = s => new Date(s).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const pill = s => el('span',{class:'pill '+s}, s);
+function signOutLocal(){ token=''; sessionStorage.removeItem('tp_token'); me=null; cache={}; renderAuth(); }
+function amountEl(v, cur='ETB'){
+  const [w,d='00'] = etb(v).split('.');
+  return el('div',{class:'amt'}, w, el('span',{class:'dec'},'.'+d), el('span',{class:'cur'},cur));
+}
+function modal(...content){
+  const close = () => scrim.remove();
+  const scrim = el('div',{class:'scrim',onclick:e=>{ if(e.target===scrim) close(); }}, el('div',{class:'sheet'}, content));
+  document.body.append(scrim);
+  return close;
+}
+async function copy(text, btn){
+  try{ await navigator.clipboard.writeText(text); const t=btn.textContent; btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent=t,1500);}catch{ prompt('Copy this:', text); }
+}
+
+/* ---------- auth ---------- */
+function renderAuth(mode='login'){
+  const msg = el('div',{class:'msg bad'});
+  const form = el('form',{onsubmit:async e=>{
+    e.preventDefault(); const f=Object.fromEntries(new FormData(e.target)); const b=e.target.querySelector('button.btn'); b.disabled=true; msg.textContent='';
+    try{
+      const d = await api(mode==='login'?'/dash/login':'/dash/register', f);
+      token=d.token; sessionStorage.setItem('tp_token',token); me=d.merchant;
+      if (d.secret_key) revealKey=d.secret_key;
+      tab = d.secret_key ? 'account' : 'home'; renderApp();
+    }catch(x){ msg.textContent=x.message; b.disabled=false; }
+  }},
+    mode==='register' ? [el('label',{},'Business name'), el('input',{name:'name',required:true,maxlength:80,autocomplete:'organization'})] : null,
+    el('label',{},'Email'), el('input',{name:'email',type:'email',required:true,autocomplete:'email'}),
+    el('label',{},'Password'), el('input',{name:'password',type:'password',required:true,minlength:8,autocomplete:mode==='login'?'current-password':'new-password'}),
+    msg, el('button',{class:'btn block',type:'submit'}, mode==='login'?'Sign in':'Create merchant account'));
+  root.replaceChildren(el('div',{class:'auth stack'},
+    el('div',{class:'brand'}, el('img',{src:'/assets/logo.svg',alt:''}),'TechET Pay', el('span',{class:'tag'},'SANDBOX')),
+    el('p',{class:'dim'},'Accept Telebirr, CBE Birr, M-Pesa, Amole and cards.'),
+    el('div',{class:'glass'},
+      el('div',{class:'seg'}, el('button',{class:mode==='login'?'on':'',onclick:()=>renderAuth('login')},'Sign in'), el('button',{class:mode==='register'?'on':'',onclick:()=>renderAuth('register')},'Create account')),
+      form)));
+}
+
+/* ---------- shell ---------- */
+function renderApp(){
+  const main = el('main',{class:'page'});
+  const nb = (key,label,ic) => el('button',{class:tab===key?'on':'',onclick:()=>{tab=key;renderApp();}}, icon(ic), label);
+  root.replaceChildren(main, el('nav',{class:'nav'},
+    nb('home','Home','home'), nb('payments','Payments','list'),
+    el('button',{class:'plus','aria-label':'Create payment link',onclick:createPaymentModal}, icon('plus')),
+    nb('payouts','Payouts','send'), nb('account','Account','user')));
+  ({home:viewHome,payments:viewPayments,payouts:viewPayouts,account:viewAccount})[tab](main).catch(x=>main.replaceChildren(el('div',{class:'glass'},el('p',{class:'msg bad'},x.message))));
+}
+function topbar(title, sub){
+  return el('div',{class:'topbar'},
+    el('img',{src:'/assets/logo.svg',alt:'',style:'width:44px;height:44px;border-radius:15px'}),
+    el('div',{class:'grow'}, el('div',{class:'hello'}, sub), el('div',{class:'name'}, title)),
+    el('button',{class:'round','aria-label':'Refresh',onclick:()=>renderApp()}, icon('refresh')));
+}
+
+/* ---------- create payment modal ---------- */
+function createPaymentModal(){
+  const msg = el('div',{class:'msg bad'});
+  const body = el('div',{});
+  const close = modal(body);
+  body.append(el('h3',{},'Create payment link'), el('p',{class:'muted small',style:'margin:0'},'Share the link with a customer, or open it to test the checkout.'),
+    el('form',{onsubmit:async e=>{
+      e.preventDefault(); const f=Object.fromEntries(new FormData(e.target)); msg.textContent='';
+      try{
+        const d = await api('/dash/test-payment',{amount:f.amount,email:f.email});
+        body.replaceChildren(el('h3',{},'Payment link ready'), el('p',{class:'small muted'},'Valid for 30 minutes.'), el('code',{class:'k'},d.checkout_url),
+          el('div',{class:'row',style:'margin-top:16px'},
+            el('a',{class:'btn',href:d.checkout_url,target:'_blank',rel:'noopener'},'Open'),
+            (()=>{const b=el('button',{class:'btn light',type:'button'},'Copy link'); b.onclick=()=>copy(d.checkout_url,b); return b;})(),
+            el('button',{class:'btn light',type:'button',onclick:()=>{close(); if(tab==='payments'||tab==='home') renderApp();}},'Done')));
+      }catch(x){ msg.textContent=x.message; }
+    }},
+      el('label',{},'Amount (ETB)'), el('input',{name:'amount',inputmode:'decimal',required:true,value:'150.00'}),
+      el('label',{},'Customer email (optional)'), el('input',{name:'email',type:'email'}),
+      msg, el('button',{class:'btn block',type:'submit'},'Create link')));
+}
+
+/* ---------- home ---------- */
+function lineChart(series){
+  const W=600,H=170,P=18,B=26, n=series.length, vals=series.map(s=>Number(s.volume)), max=Math.max(1,...vals);
+  const x=i=>P+i*(W-2*P)/(n-1), y=v=>H-B-(v/max)*(H-B-22);
+  const pts=vals.map((v,i)=>[x(i),y(v)]);
+  let d='M'+pts[0][0]+','+pts[0][1];
+  for(let i=0;i<n-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const cl=v=>Math.max(22,Math.min(H-B,v)); // keep the curve inside the chart (no overshoot below zero)
+    d+=' C'+(p1[0]+(p2[0]-p0[0])/6)+','+cl(p1[1]+(p2[1]-p0[1])/6)+' '+(p2[0]-(p3[0]-p1[0])/6)+','+cl(p2[1]-(p3[1]-p1[1])/6)+' '+p2[0]+','+p2[1];
+  }
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('class','chart'); svg.setAttribute('preserveAspectRatio','none');
+  const mk=(t,a,txt)=>{const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); if(txt) e.textContent=txt; svg.append(e); return e;};
+  const defs=mk('defs',{}); defs.innerHTML='<linearGradient id="cf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2F86E0" stop-opacity=".35"/><stop offset="1" stop-color="#2F86E0" stop-opacity="0"/></linearGradient>';
+  mk('path',{d:d+` L${x(n-1)},${H-B} L${x(0)},${H-B} Z`,fill:'url(#cf)'});
+  mk('path',{d,fill:'none',stroke:'#1F6FD0','stroke-width':3.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'});
+  mk('circle',{cx:pts[n-1][0],cy:pts[n-1][1],r:6,fill:'#fff',stroke:'#143A8F','stroke-width':3});
+  series.forEach((s,i)=>{ if(i%3===0||i===n-1) mk('text',{x:x(i),y:H-6,'text-anchor':'middle',class:'axis'},s.date.slice(5)); });
+  return svg;
+}
+async function viewHome(main){
+  main.replaceChildren(topbar(me.name,'Welcome back'), el('div',{class:'hero'},el('div',{class:'lbl'},'Loading…')));
+  const [o, txs] = await Promise.all([api('/dash/overview'), api('/dash/transactions')]);
+  const tiles = el('div',{class:'tiles'},
+    ...[['Pay link','link',createPaymentModal],['Payout','send',()=>{tab='payouts';renderApp();}],['History','list',()=>{tab='payments';renderApp();}],['Keys','key',()=>{tab='account';renderApp();}]]
+      .map(([l,ic,fn])=>el('button',{class:'tile',onclick:fn}, el('i',{},icon(ic)), l)));
+  const recent = txs.slice(0,5);
+  main.replaceChildren(topbar(me.name,'Welcome back'),
+    el('div',{class:'stack'},
+      el('div',{class:'hero'}, el('div',{class:'lbl'},'Available balance'), amountEl(o.available_balance),
+        el('div',{class:'chips'}, el('span',{class:'chip'},'Net earned '+etb(o.net_earned)), el('span',{class:'chip'},'Fee '+o.fee_percent+'%'), el('span',{class:'chip'},o.successful+' paid'))),
+      tiles,
+      el('div',{class:'glass'},
+        el('div',{class:'row spread'}, el('h3',{style:'margin:0'},'Statistic'), el('span',{class:'chip light'},'Last 14 days')),
+        lineChart(o.series),
+        el('div',{class:'stats',style:'margin-top:8px'},
+          el('div',{class:'stat'}, el('div',{class:'k'},'Income'), el('div',{class:'v'},etb(o.gross_volume),' ',el('small',{},'ETB'))),
+          el('div',{class:'stat alt'}, el('div',{class:'k'},'Pending / failed'), el('div',{class:'v'},o.pending+' / '+o.failed)))),
+      el('div',{class:'navy'}, el('div',{class:'row spread'}, el('h3',{style:'margin:0'},'Transactions'), el('button',{class:'chip',style:'cursor:pointer',onclick:()=>{tab='payments';renderApp();}},'See all')),
+        txList(recent))));
+}
+function txList(list){
+  if (!list.length) return el('div',{class:'empty'},'No payments yet. Tap + to create a test payment.');
+  return el('div',{}, list.map(t=>el('button',{class:'item',onclick:()=>txModal(t)},
+    el('div',{class:'ic'}, (t.payment_method||'—').slice(0,2).toUpperCase()),
+    el('div',{class:'mid'}, el('div',{class:'t'}, t.email||t.tx_ref), el('div',{class:'s'}, when(t.created_at)+' · '+(t.payment_method||'not started'))),
+    el('div',{class:'end'}, el('div',{class:'amt'},etb(t.amount)), pill(t.status)))));
+}
+function txModal(t){
+  const kv=(k,v)=>el('div',{class:'kv'},el('span',{},k),el('span',{},v));
+  const close = modal(el('h3',{},'Payment details'), pill(t.status),
+    el('div',{style:'margin-top:10px'}, kv('Reference',t.tx_ref), kv('Provider ref',t.reference||'—'), kv('Amount',etb(t.amount)+' ETB'), kv('Fee',etb(t.fee)+' ETB'),
+      kv('You receive',t.status==='success'?etb(t.net_amount)+' ETB':'—'), kv('Method',t.payment_method?t.payment_method+' '+t.account:'—'), kv('Customer',t.email||'—'),
+      t.failure_reason?kv('Failure',t.failure_reason):null, kv('Created',when(t.created_at))),
+    el('button',{class:'btn block',onclick:()=>close()},'Close'));
+}
+
+/* ---------- payments ---------- */
+async function viewPayments(main){
+  main.replaceChildren(topbar('Payments','Checkout transactions'), el('p',{class:'muted'},'Loading…'));
+  const all = await api('/dash/transactions');
+  const seg = el('div',{class:'seg'}, ['all','success','pending','failed'].map(k=>el('button',{class:payFilter===k?'on':'',onclick:()=>{payFilter=k;viewPayments(main);}}, k==='all'?'All':k[0].toUpperCase()+k.slice(1))));
+  const list = payFilter==='all'?all:all.filter(t=>t.status===payFilter);
+  main.replaceChildren(topbar('Payments','Checkout transactions'), seg, el('div',{class:'navy'}, txList(list)));
+}
+
+/* ---------- payouts ---------- */
+async function viewPayouts(main){
+  main.replaceChildren(topbar('Payouts','Withdraw to a bank or wallet'), el('p',{class:'muted'},'Loading…'));
+  const [o, list, banks] = await Promise.all([api('/dash/overview'), api('/dash/transfers'), fetch('/v1/banks').then(r=>r.json()).then(j=>j.data)]);
+  if (!bank || !banks.find(b=>b.code===bank)) bank = banks[0].code;
+  const msg = el('div',{class:'msg'});
+  const chips = el('div',{class:'chipbar'}, banks.map(b=>el('button',{type:'button',class:'pick'+(bank===b.code?' on':''),onclick:()=>{bank=b.code;chips.querySelectorAll('.pick').forEach(x=>x.classList.toggle('on',x.dataset.c===b.code));},'data-c':b.code}, b.name)));
+  const form = el('form',{onsubmit:async e=>{
+    e.preventDefault(); const f=Object.fromEntries(new FormData(e.target)); f.bank_code=bank; msg.className='msg'; msg.textContent='';
+    try{ await api('/dash/transfers',f); msg.className='msg good'; msg.textContent='Payout queued. Funds are on hold until the bank confirms.'; setTimeout(()=>{ if(tab==='payouts') renderApp(); },3800); }
+    catch(x){ msg.className='msg bad'; msg.textContent=x.message; }
+  }}, el('label',{},'Send to'), chips,
+    el('label',{},'Amount (ETB)'), el('input',{name:'amount',inputmode:'decimal',required:true,placeholder:'500.00'}),
+    el('label',{},'Account holder name'), el('input',{name:'account_name',required:true}),
+    el('label',{},'Account or phone number'), el('input',{name:'account_number',required:true,inputmode:'numeric'}),
+    el('button',{class:'btn block',type:'submit'},'Request payout (fee '+etb(o.payout_fee)+' ETB)'), msg,
+    el('p',{class:'small muted'},'Sandbox: account numbers ending in 0000 are rejected and refunded automatically.'));
+  main.replaceChildren(topbar('Payouts','Withdraw to a bank or wallet'),
+    el('div',{class:'stack'},
+      el('div',{class:'hero'}, el('div',{class:'lbl'},'Available to withdraw'), amountEl(o.available_balance)),
+      el('div',{class:'glass'}, el('h3',{},'New payout'), form),
+      el('div',{class:'navy'}, el('h3',{},'History'),
+        list.length ? el('div',{}, list.map(t=>el('div',{class:'item'},
+          el('div',{class:'ic'},t.bank_code.slice(0,2).toUpperCase()),
+          el('div',{class:'mid'}, el('div',{class:'t'},t.account_name), el('div',{class:'s'},when(t.created_at)+' · '+t.account_number+(t.failure_reason?' · '+t.failure_reason:''))),
+          el('div',{class:'end'}, el('div',{class:'amt'},etb(t.amount)), pill(t.status))))) : el('div',{class:'empty'},'No payouts yet.'))));
+}
+
+/* ---------- account / developers ---------- */
+async function viewAccount(main){
+  main.replaceChildren(topbar('Account','Keys, webhooks and docs'), el('p',{class:'muted'},'Loading…'));
+  me = await api('/dash/me');
+  const [dl, lc] = await Promise.all([api('/dash/deliveries'), api('/dash/ledger-check')]);
+  const base = location.origin;
+  const reveal = revealKey ? el('div',{class:'reveal'}, el('strong',{},'Copy your secret key now. It is shown only once.'), el('div',{style:'margin-top:8px'}, el('code',{class:'k'},revealKey))) : null;
+  const wmsg = el('div',{class:'msg'});
+  const wform = el('form',{onsubmit:async e=>{
+    e.preventDefault(); wmsg.className='msg';
+    try{ await api('/dash/webhook',{url:new FormData(e.target).get('url')}); wmsg.className='msg good'; wmsg.textContent='Saved.'; }catch(x){ wmsg.className='msg bad'; wmsg.textContent=x.message; }
+  }}, el('label',{style:'margin-top:0'},'Webhook URL'), el('input',{name:'url',type:'url',value:me.webhook_url||'',placeholder:'https://yourapp.com/webhooks/techet'}),
+     el('button',{class:'btn block',type:'submit'},'Save webhook'), wmsg);
+  const curl = `curl -X POST ${base}/v1/transaction/initialize \\
+  -H "Authorization: Bearer YOUR_SECRET_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"amount":"150.00","currency":"ETB","email":"abebe@example.com",
+       "tx_ref":"order-1001","return_url":"https://yourshop.com/thanks"}'`;
+  const verify = `curl ${base}/v1/transaction/verify/order-1001 \\
+  -H "Authorization: Bearer YOUR_SECRET_KEY"`;
+  const sig = `// Node.js: verify a webhook
+const expected = crypto.createHmac('sha256', WEBHOOK_SECRET)
+  .update(req.headers['x-techet-timestamp'] + '.' + rawBody).digest('hex');
+if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(req.headers['x-techet-signature']))) reject();`;
+  const rot = el('button',{class:'btn light',onclick:async()=>{
+    if(!confirm('Rotate the secret key? The current key stops working immediately.')) return;
+    try{ const d=await api('/dash/rotate-key',{}); revealKey=d.secret_key; renderApp(); }catch(x){alert(x.message);}
+  }},'Rotate secret key');
+  main.replaceChildren(topbar(me.name,me.email), reveal,
+    el('div',{class:'stack'},
+      el('div',{class:'grid cols-2'},
+        el('div',{class:'glass'}, el('h3',{},'API keys'), el('div',{class:'small muted'},'Public key'), el('code',{class:'k'},me.public_key),
+          el('div',{class:'small muted',style:'margin-top:12px'},'Secret key'), el('code',{class:'k'},me.secret_key_hint), el('div',{style:'margin-top:14px'},rot)),
+        el('div',{class:'glass'}, el('h3',{},'Webhooks'), wform, el('div',{class:'small muted',style:'margin-top:12px'},'Signing secret'), el('code',{class:'k'},me.webhook_secret))),
+      el('div',{class:'glass'}, el('h3',{},'1 · Create a payment'), el('pre',{},curl), el('p',{class:'small muted',style:'margin:0'},'Redirect your customer to data.checkout_url.')),
+      el('div',{class:'glass'}, el('h3',{},'2 · Verify the result'), el('pre',{},verify), el('h3',{style:'margin-top:14px'},'3 · Check webhook signatures'), el('pre',{},sig)),
+      el('div',{class:'navy'}, el('h3',{},'Webhook deliveries'),
+        dl.length ? el('div',{}, dl.map(d=>el('div',{class:'item'}, el('div',{class:'mid'}, el('div',{class:'t'},d.event), el('div',{class:'s'},when(d.created_at)+' · '+d.attempts+' attempt(s)'+(d.last_error?' · '+d.last_error:''))), el('div',{class:'end'},pill(d.status))))) : el('div',{class:'empty'},'No deliveries yet.')),
+      el('div',{class:'glass'}, el('h3',{},'Ledger integrity'), el('p',{style:'margin:0'}, lc.balanced?'✅ Books balance':'❌ Ledger out of balance', ' · ', String(lc.entries), ' entries · debits ', etb(lc.total_debits), ' = credits ', etb(lc.total_credits), ' ETB')),
+      el('button',{class:'btn light block',onclick:async()=>{ try{await api('/dash/logout',{});}catch{} signOutLocal(); }}, icon('out'), 'Sign out')));
+  const ob = main.querySelector('button.btn.light.block svg'); if (ob){ ob.style.width='20px'; ob.style.height='20px'; ob.style.stroke='currentColor'; }
+}
+
+(async()=>{
+  if (token){ try{ me = await api('/dash/me'); renderApp(); return; }catch{} }
+  renderAuth();
+})();
+</script>
+</body>
+</html>
