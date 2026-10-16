@@ -41,7 +41,9 @@ jobs:
         working-directory: android
         env:
           SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL || 'https://techet-pay.onrender.com' }}
-        run: ./gradlew --no-daemon :app:assembleDebug -PserverUrl="$SERVER_URL"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :app:assembleDebug -PserverUrl="$SERVER_URL"
 
       - name: Collect APK
         run: |
