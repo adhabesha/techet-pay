@@ -35,6 +35,12 @@ background:linear-gradient(160deg,#F2F6FC,#BBD9F3 55%,#5FA8F5)"><div style="text
 <div style="font-size:22px;font-weight:800">${title}</div>
 <p>Connecting to the server. The free server can take up to a minute to wake up&hellip;</p></div>`);
 
+// Each app needs its own identity, otherwise the merchant and admin apps share one
+// "single instance" lock and launching one just focuses the other.
+app.setName(title);
+app.setPath('userData', path.join(app.getPath('appData'), isAdmin ? 'TechET Pay Admin' : 'TechET Pay'));
+if (process.platform === 'win32') app.setAppUserModelId(isAdmin ? 'et.techet.pay.admin' : 'et.techet.pay.desktop');
+
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 
 let win;
