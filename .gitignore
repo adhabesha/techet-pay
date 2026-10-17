@@ -11,3 +11,6 @@ android/app/build/
 android/.idea/
 *.apk
 dist/
+
+desktop/node_modules/
+desktop/dist/

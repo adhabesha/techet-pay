@@ -111,3 +111,9 @@ Open `/dashboard` (merchants) or `/admin` (owner) in Chrome or Edge and click th
 ## Updating the Android app
 The APK is signed with a fixed key (`android/app/techet.keystore`), so a new APK installs over the old one.
 APKs built before that key was added must be uninstalled once first.
+
+## Windows desktop apps
+`.github/workflows/desktop.yml` builds two installers (merchant and owner admin) with Electron. Each opens the hosted
+site in its own window with a desktop icon, and uses frosted acrylic glass on Windows 11. Download them from the
+`desktop-latest` release. Windows shows "Windows protected your PC" because the apps are unsigned: More info, Run anyway.
+Local run: `cd desktop && npm install && TECHET_SERVER_URL=http://localhost:8080 npm start`.

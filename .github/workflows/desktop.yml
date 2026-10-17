@@ -1,0 +1,106 @@
+name: Build Windows desktop apps
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: "Server address baked into the apps (https://...)"
+        required: false
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - "desktop/**"
+      - ".github/workflows/desktop.yml"
+
+concurrency:
+  group: desktop-build
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - kind: merchant
+            product: "TechET Pay"
+            appid: et.techet.pay.desktop
+            out: TechET-Pay-Setup.exe
+          - kind: admin
+            product: "TechET Pay Admin"
+            appid: et.techet.pay.admin
+            out: TechET-Pay-Admin-Setup.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Write config
+        shell: bash
+        working-directory: desktop
+        env:
+          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL || 'https://techet-pay.onrender.com' }}
+          KIND: ${{ matrix.kind }}
+        run: |
+          printf '{ "serverUrl": "%s", "app": "%s" }\n' "$SERVER_URL" "$KIND" > config.json
+          cat config.json
+
+      - name: Install
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+
+      - name: Build installer
+        working-directory: desktop
+        shell: bash
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npx electron-builder --win nsis --publish never \
+            --config.productName="${{ matrix.product }}" \
+            --config.appId="${{ matrix.appid }}"
+          ls -la dist
+
+      - name: Name the installer
+        shell: bash
+        run: |
+          mkdir -p out
+          cp desktop/dist/*Setup*.exe "out/${{ matrix.out }}"
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.kind }}
+          path: out/${{ matrix.out }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - run: ls -la out
+      - name: Move the desktop-latest tag to this commit
+        run: |
+          git tag -f desktop-latest
+          git push -f origin desktop-latest
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: desktop-latest
+          name: TechET Pay Windows apps (latest)
+          make_latest: false
+          body: |
+            Windows installers: TechET-Pay-Setup.exe (merchant) and TechET-Pay-Admin-Setup.exe (owner admin).
+            Windows may show "Windows protected your PC" because the apps are not code-signed: click More info, then Run anyway.
+          files: |
+            out/TechET-Pay-Setup.exe
+            out/TechET-Pay-Admin-Setup.exe
