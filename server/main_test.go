@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -450,6 +451,30 @@ func TestAdminPanel(t *testing.T) {
 	for _, p := range []string{"/admin/api/transactions", "/admin/api/transfers", "/admin/api/deliveries", "/admin/api/ledger-check"} {
 		if c, _ := e.call("GET", p, at, nil); c != 200 {
 			t.Fatalf("%s: %d", p, c)
+		}
+	}
+}
+
+func TestInstallableAppFiles(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.DataPath = ""
+	app, err := NewApp(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := httptest.NewServer(app.Routes())
+	defer ts.Close()
+	for path, ct := range map[string]string{
+		"/manifest-dashboard.webmanifest": "application/manifest+json", "/manifest-admin.webmanifest": "application/manifest+json",
+		"/sw.js": "text/javascript", "/assets/icon-192.png": "image/png", "/assets/icon-512.png": "image/png", "/assets/icon-maskable-512.png": "image/png",
+	} {
+		resp, err := http.Get(ts.URL + path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != 200 || !strings.HasPrefix(resp.Header.Get("Content-Type"), ct) {
+			t.Fatalf("%s: status %d type %q", path, resp.StatusCode, resp.Header.Get("Content-Type"))
 		}
 	}
 }

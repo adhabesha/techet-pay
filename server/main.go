@@ -468,6 +468,22 @@ func (a *App) Routes() http.Handler {
 		w.Header().Set("Cache-Control", "public, max-age=3600")
 		_, _ = w.Write(b)
 	})
+	// installable-app files (PWA): one manifest per app so each installs on its own
+	static := func(name, ct string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			b, err := webFS.ReadFile("web/" + name)
+			if err != nil {
+				http.NotFound(w, r)
+				return
+			}
+			w.Header().Set("Content-Type", ct)
+			w.Header().Set("Cache-Control", "no-cache")
+			_, _ = w.Write(b)
+		}
+	}
+	mux.HandleFunc("GET /manifest-dashboard.webmanifest", static("manifest-dashboard.webmanifest", "application/manifest+json"))
+	mux.HandleFunc("GET /manifest-admin.webmanifest", static("manifest-admin.webmanifest", "application/manifest+json"))
+	mux.HandleFunc("GET /sw.js", static("sw.js", "text/javascript; charset=utf-8"))
 	mux.HandleFunc("GET /dashboard", page("dashboard.html"))
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/dashboard", http.StatusFound) })
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })

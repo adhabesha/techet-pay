@@ -103,3 +103,11 @@ Webhooks: `charge.success`, `charge.failed`, `transfer.success`, `transfer.faile
 2. Real rails: implement the `Provider` interface in `server/providers.go` (Telebirr, banks, card processor; use the processor's hosted card fields for PCI scope).
 3. PostgreSQL with transactions instead of the JSON snapshot; keep the ledger append-only.
 4. Merchant KYC/AML, settlement reconciliation, an admin back-office, audit log, monitoring, backups, a signed release APK.
+
+## Install as a desktop app
+Open `/dashboard` (merchants) or `/admin` (owner) in Chrome or Edge and click the install icon in the address bar
+(or menu, "Install TechET Pay"). Each one gets its own window, Start-menu entry and icon. On Android Chrome use "Add to Home screen".
+
+## Updating the Android app
+The APK is signed with a fixed key (`android/app/techet.keystore`), so a new APK installs over the old one.
+APKs built before that key was added must be uninstalled once first.

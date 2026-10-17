@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TechET Pay · Merchant dashboard</title>
 <link rel="icon" href="/assets/logo.svg">
+<link rel="manifest" href="/manifest-dashboard.webmanifest">
+<meta name="theme-color" content="#0A1740">
+<link rel="apple-touch-icon" href="/assets/icon-192.png">
+
 <link rel="stylesheet" href="/assets/techet.css">
 </head>
 <body>
@@ -272,5 +276,6 @@ if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(req.headers['x-te
   renderAuth();
 })();
 </script>
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
 </body>
 </html>

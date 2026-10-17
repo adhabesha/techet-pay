@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin · TechET Pay</title>
 <link rel="icon" href="/assets/logo.svg">
+<link rel="manifest" href="/manifest-admin.webmanifest">
+<meta name="theme-color" content="#0A1740">
+<link rel="apple-touch-icon" href="/assets/icon-192.png">
+
 <link rel="stylesheet" href="/assets/techet.css">
 <style>
   body:before{top:60px;right:-120px}
@@ -298,5 +302,6 @@ async function load(quiet){
 render(); if(token){ load(); }
 timer=setInterval(()=>{ if(token && !document.hidden && page==='overview') load(true); },20000);
 </script>
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
 </body>
 </html>

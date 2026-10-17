@@ -1,0 +1,31 @@
+{
+ "name": "TechET Pay",
+ "short_name": "TechET Pay",
+ "description": "Merchant dashboard for TechET Pay",
+ "id": "/dashboard",
+ "start_url": "/dashboard",
+ "scope": "/dashboard",
+ "display": "standalone",
+ "background_color": "#BBD9F3",
+ "theme_color": "#0A1740",
+ "icons": [
+  {
+   "src": "/assets/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/assets/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/assets/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

@@ -20,6 +20,16 @@ android {
         buildConfigField("String", "DEFAULT_SERVER_URL", "\"" + server + "\"")
     }
 
+    // One fixed signing key so a new APK can be installed over the old one (an update).
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("techet.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
