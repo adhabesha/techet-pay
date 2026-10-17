@@ -387,3 +387,69 @@ func TestDiskSnapshotRestart(t *testing.T) {
 		t.Fatalf("balance after reload = %v", got)
 	}
 }
+
+func TestAdminPanel(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.DataPath = ""
+	cfg.AdminPassword = ""
+	app, err := NewApp(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := httptest.NewServer(app.Routes())
+	defer ts.Close()
+	e := &env2{t, app, ts}
+
+	if c, _ := e.call("POST", "/admin/api/login", "", map[string]string{"email": cfg.AdminEmail, "password": "x"}); c != 503 {
+		t.Fatalf("admin must be disabled without a password, got %d", c)
+	}
+	app.cfg.AdminPassword = "correct-horse-battery"
+	if c, _ := e.call("POST", "/admin/api/login", "", map[string]string{"email": cfg.AdminEmail, "password": "nope"}); c != 401 {
+		t.Fatalf("wrong password: want 401 got %d", c)
+	}
+	if c, _ := e.call("GET", "/admin/api/overview", "", nil); c != 401 {
+		t.Fatalf("overview without session: want 401 got %d", c)
+	}
+	// a merchant session must not open the admin API
+	_, reg := e.call("POST", "/dash/register", "", map[string]string{"name": "Shop", "email": "shop@example.com", "password": "password123"})
+	mt, secret := data2(reg)["token"].(string), data2(reg)["secret_key"].(string)
+	if c, _ := e.call("GET", "/admin/api/merchants", mt, nil); c != 401 {
+		t.Fatalf("merchant token must not work on admin API, got %d", c)
+	}
+	c, lg := e.call("POST", "/admin/api/login", "", map[string]string{"email": cfg.AdminEmail, "password": "correct-horse-battery"})
+	if c != 200 {
+		t.Fatalf("admin login failed: %d", c)
+	}
+	at := data2(lg)["token"].(string)
+	_, ov := e.call("GET", "/admin/api/overview", at, nil)
+	if data2(ov)["merchants"].(float64) != 1 {
+		t.Fatalf("overview merchants: %v", ov)
+	}
+	_, ms := e.call("GET", "/admin/api/merchants", at, nil)
+	id := ms["data"].([]any)[0].(map[string]any)["id"].(string)
+
+	if c, _ := e.call("POST", "/v1/transaction/initialize", secret, map[string]any{"amount": "100.00", "email": "a@b.co", "tx_ref": "adm-1"}); c != 200 {
+		t.Fatalf("active merchant init: %d", c)
+	}
+	if c, _ := e.call("POST", "/admin/api/merchants/"+id+"/suspend", at, map[string]bool{"suspended": true}); c != 200 {
+		t.Fatalf("suspend: %d", c)
+	}
+	if c, _ := e.call("POST", "/v1/transaction/initialize", secret, map[string]any{"amount": "100.00", "email": "a@b.co", "tx_ref": "adm-2"}); c != 401 {
+		t.Fatalf("suspended key must be rejected, got %d", c)
+	}
+	if c, _ := e.call("GET", "/dash/me", mt, nil); c != 401 {
+		t.Fatalf("suspended session must be rejected, got %d", c)
+	}
+	if c, _ := e.call("POST", "/dash/login", "", map[string]string{"email": "shop@example.com", "password": "password123"}); c != 403 {
+		t.Fatalf("suspended login: want 403 got %d", c)
+	}
+	e.call("POST", "/admin/api/merchants/"+id+"/suspend", at, map[string]bool{"suspended": false})
+	if c, _ := e.call("POST", "/v1/transaction/initialize", secret, map[string]any{"amount": "100.00", "email": "a@b.co", "tx_ref": "adm-3"}); c != 200 {
+		t.Fatalf("reactivated merchant init: %d", c)
+	}
+	for _, p := range []string{"/admin/api/transactions", "/admin/api/transfers", "/admin/api/deliveries", "/admin/api/ledger-check"} {
+		if c, _ := e.call("GET", p, at, nil); c != 200 {
+			t.Fatalf("%s: %d", p, c)
+		}
+	}
+}

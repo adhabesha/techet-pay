@@ -40,6 +40,8 @@ func defaultConfig() Config {
 		FeeBPS:               bps,
 		PayoutFee:            pf,
 		AllowPrivateWebhooks: os.Getenv("TECHET_ALLOW_PRIVATE_WEBHOOKS") == "1",
+		AdminEmail:           strings.ToLower(env("TECHET_ADMIN_EMAIL", "admin@techet.pay")),
+		AdminPassword:        os.Getenv("TECHET_ADMIN_PASSWORD"),
 		PayoutDelay:          3 * time.Second,
 		TxTTL:                30 * time.Minute,
 		Backoff:              []time.Duration{5 * time.Second, 30 * time.Second, 2 * time.Minute, 10 * time.Minute, time.Hour},
@@ -51,7 +53,7 @@ func NewApp(cfg Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &App{cfg: cfg, s: s, prov: SandboxProvider{}, lim: newLimiter()}, nil
+	return &App{cfg: cfg, s: s, prov: SandboxProvider{}, lim: newLimiter(), adm: newAdminSessions()}, nil
 }
 
 func listenAddr() string {
@@ -450,6 +452,8 @@ func (a *App) Routes() http.Handler {
 	mux.HandleFunc("GET /dash/ledger-check", a.dashAuth(func(w http.ResponseWriter, r *http.Request, m Merchant) {
 		ok(w, "ok", a.LedgerCheck())
 	}))
+
+	a.adminRoutes(mux)
 
 	mux.HandleFunc("GET /assets/{file}", func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("file")

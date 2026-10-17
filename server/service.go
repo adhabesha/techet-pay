@@ -17,6 +17,7 @@ type App struct {
 	s    *Store
 	prov Provider
 	lim  *limiter
+	adm  *adminSessions
 }
 
 type apiError struct {
@@ -109,6 +110,9 @@ func (a *App) Login(email, password string) (string, Merchant, error) {
 	if m.ID == "" || subtle.ConstantTimeCompare([]byte(got), []byte(m.PassHash)) != 1 {
 		return "", Merchant{}, &apiError{401, "invalid email or password"}
 	}
+	if m.Suspended {
+		return "", Merchant{}, &apiError{403, "this account is suspended, contact TechET Pay support"}
+	}
 	tok := "sess_" + randHex(24)
 	a.s.mu.Lock()
 	a.s.d.Sessions[sha(tok)] = &Session{MerchantID: m.ID, Expires: time.Now().Add(12 * time.Hour)}
@@ -127,7 +131,7 @@ func (a *App) Logout(tok string) {
 func (a *App) merchantBySecret(key string) (Merchant, bool) {
 	a.s.mu.Lock()
 	defer a.s.mu.Unlock()
-	if id, ok := a.s.keyIdx[sha(key)]; ok {
+	if id, ok := a.s.keyIdx[sha(key)]; ok && !a.s.d.Merchants[id].Suspended {
 		return *a.s.d.Merchants[id], true
 	}
 	return Merchant{}, false
@@ -143,7 +147,7 @@ func (a *App) merchantBySession(tok string) (Merchant, bool) {
 		return Merchant{}, false
 	}
 	m := a.s.d.Merchants[se.MerchantID]
-	if m == nil {
+	if m == nil || m.Suspended {
 		return Merchant{}, false
 	}
 	return *m, true

@@ -163,7 +163,13 @@ if (-not $SkipRender -and -not $serviceUrl) {
         $ownerId = $pick.owner.id
         Ok ("Render workspace: " + $pick.owner.name)
 
-        $env2 = @()
+        $adminEmail = "admin@techet.pay"
+        $chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"
+        $adminPass = -join (1..16 | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
+        $env2 = @(
+            @{ key = "TECHET_ADMIN_EMAIL";    value = $adminEmail },
+            @{ key = "TECHET_ADMIN_PASSWORD"; value = $adminPass }
+        )
         if ($upUrl) {
             $env2 += @{ key = "UPSTASH_REDIS_REST_URL";   value = $upUrl }
             $env2 += @{ key = "UPSTASH_REDIS_REST_TOKEN"; value = $upTok }
@@ -205,6 +211,7 @@ if (-not $SkipRender -and -not $serviceUrl) {
         }
         if (-not $created) { throw "Could not find a free service name." }
     } catch {
+        $adminPass = $null   # the blueprint generates its own admin password instead
         Warn "Automatic Render setup did not work:"
         Note ($_ | Out-String).Trim()
         Write-Host ""
@@ -270,6 +277,9 @@ Write-Host "=====================================================" -ForegroundCo
 Write-Host "  GitHub repo : $repoUrl"
 if ($serviceUrl) {
     Write-Host "  Dashboard   : $serviceUrl/dashboard"
+    Write-Host "  Admin panel : $serviceUrl/admin"
+    if ($adminPass) { Write-Host "  Admin login : $adminEmail  /  $adminPass   (save this)" -ForegroundColor Yellow }
+    else { Write-Host "  Admin login : see TECHET_ADMIN_PASSWORD in the Render service > Environment" -ForegroundColor Yellow }
     Write-Host "  API base    : $serviceUrl/v1"
 }
 if ($apkPath) {

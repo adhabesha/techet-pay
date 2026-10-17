@@ -9,6 +9,8 @@ services:
     environment:
       TECHET_BASE_URL: ${TECHET_BASE_URL:-}      # e.g. https://pay.yourdomain.com
       TECHET_FEE_BPS: ${TECHET_FEE_BPS:-250}
+      TECHET_ADMIN_EMAIL: ${TECHET_ADMIN_EMAIL:-admin@techet.pay}
+      TECHET_ADMIN_PASSWORD: ${TECHET_ADMIN_PASSWORD:-}   # required to enable /admin
     volumes:
       - techet-data:/data
 volumes:

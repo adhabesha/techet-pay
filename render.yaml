@@ -12,6 +12,12 @@ services:
     envVars:
       # Free Upstash Redis database (console.upstash.com, no card needed).
       # Render asks you for these two values when you create the Blueprint.
+      # Admin panel login (/admin). Render generates the password: see the
+      # service's Environment tab. Email defaults to admin@techet.pay.
+      - key: TECHET_ADMIN_EMAIL
+        value: admin@techet.pay
+      - key: TECHET_ADMIN_PASSWORD
+        generateValue: true
       - key: UPSTASH_REDIS_REST_URL
         sync: false
       - key: UPSTASH_REDIS_REST_TOKEN

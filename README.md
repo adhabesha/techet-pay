@@ -38,7 +38,7 @@ go test -race ./...
 ```
 
 Environment: `PORT` / `TECHET_ADDR`, `TECHET_BASE_URL` (public https address for checkout links), `TECHET_DATA` (snapshot file),
-`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (off-box snapshots), `TECHET_FEE_BPS` (250 = 2.5%), `TECHET_PAYOUT_FEE` (5.00).
+`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (off-box snapshots), `TECHET_ADMIN_EMAIL` / `TECHET_ADMIN_PASSWORD` (sign-in for the owner panel at `/admin`; the panel stays off until a password is set), `TECHET_FEE_BPS` (250 = 2.5%), `TECHET_PAYOUT_FEE` (5.00).
 
 ## Move to a real server later
 

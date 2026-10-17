@@ -90,6 +90,7 @@ type Merchant struct {
 	SecretHint    string    `json:"secret_hint"`
 	WebhookURL    string    `json:"webhook_url"`
 	WebhookSecret string    `json:"webhook_secret"`
+	Suspended     bool      `json:"suspended"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
@@ -174,4 +175,6 @@ type Config struct {
 	PayoutDelay          time.Duration
 	TxTTL                time.Duration
 	Backoff              []time.Duration
+	AdminEmail           string
+	AdminPassword        string
 }
