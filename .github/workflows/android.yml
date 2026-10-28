@@ -40,7 +40,7 @@ jobs:
       - name: Build debug APK
         working-directory: android
         env:
-          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL || 'https://techet-pay.onrender.com' }}
+          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL || 'https://techet-pay-ecfb.onrender.com' }}
         run: ./gradlew --no-daemon :app:assembleDebug -PserverUrl="$SERVER_URL"
 
       - name: Collect APK

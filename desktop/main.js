@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 
-let cfg = { serverUrl: 'https://techet-pay.onrender.com', app: 'merchant' };
+let cfg = { serverUrl: 'https://techet-pay-ecfb.onrender.com', app: 'merchant' };
 try { cfg = { ...cfg, ...JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8')) }; } catch (e) {}
 if (process.env.TECHET_SERVER_URL) cfg.serverUrl = process.env.TECHET_SERVER_URL;
 

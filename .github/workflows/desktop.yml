@@ -46,7 +46,7 @@ jobs:
         shell: bash
         working-directory: desktop
         env:
-          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL || 'https://techet-pay.onrender.com' }}
+          SERVER_URL: ${{ inputs.server_url || vars.SERVER_URL || 'https://techet-pay-ecfb.onrender.com' }}
           KIND: ${{ matrix.kind }}
         run: |
           printf '{ "serverUrl": "%s", "app": "%s" }\n' "$SERVER_URL" "$KIND" > config.json
