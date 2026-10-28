@@ -9,15 +9,18 @@ import (
 	"net/mail"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
 type App struct {
-	cfg  Config
-	s    *Store
-	prov Provider
-	lim  *limiter
-	adm  *adminSessions
+	cfg      Config
+	s        *Store
+	prov     Provider
+	lim      *limiter
+	adm      *adminSessions
+	vault    *Vault
+	lastBase atomic.Value // last public address seen in a request (fallback for callback URLs)
 }
 
 type apiError struct {
@@ -269,11 +272,13 @@ func (a *App) CheckoutInfo(tok string) (map[string]any, error) {
 		"amount": t.Amount, "currency": t.Currency, "status": t.Status, "stage": t.Stage,
 		"method": t.Method, "account": t.Account, "fail_reason": t.FailReason,
 		"return_url": t.ReturnURL, "tx_ref": t.TxRef, "reference": t.ProviderRef,
-		"methods": methods, "expires_at": t.ExpiresAt,
+		"methods": methods, "expires_at": t.ExpiresAt, "redirect_url": t.RedirectURL, "livemode": t.Mode == "live", "live": a.s.d.Merchants[t.MerchantID].LiveEnabled,
 	}, nil
 }
 
-func (a *App) Pay(tok string, in PayInput) error {
+func (a *App) Pay(tok string, in PayInput) error { return a.PayAt(tok, in, a.cfg.BaseURL) }
+
+func (a *App) PayAt(tok string, in PayInput, base string) error {
 	a.s.mu.Lock()
 	defer a.s.mu.Unlock()
 	t, err := a.txByToken(tok)
@@ -287,11 +292,18 @@ func (a *App) Pay(tok string, in PayInput) error {
 	if !ok {
 		return bad("choose a payment method")
 	}
+	lp, creds, live, rerr := a.routeLocked(a.s.d.Merchants[t.MerchantID], meth.Code)
+	if rerr != nil {
+		return rerr
+	}
+	if live {
+		return a.payLiveLocked(t, meth, in, lp, creds, base)
+	}
 	acct, needOTP, perr := a.prov.Charge(meth, in)
 	if perr != nil && acct == "" { // input validation problem: let the payer retry
 		return bad(perr.Error())
 	}
-	t.Method, t.Account, t.UpdatedAt = meth.Code, acct, time.Now().UTC()
+	t.Method, t.Mode, t.Account, t.UpdatedAt = meth.Code, "sandbox", acct, time.Now().UTC()
 	if perr != nil { // provider declined: terminal
 		a.failLocked(t, perr.Error())
 		return nil
@@ -312,6 +324,9 @@ func (a *App) ConfirmOTP(tok, otp string) error {
 	}
 	if t.Status != StatusPending || t.Stage != "otp" {
 		return conflict("no confirmation is pending for this payment")
+	}
+	if t.Mode == "live" {
+		return conflict("this payment is confirmed on the provider's side")
 	}
 	if !a.prov.ConfirmOTP(otp) {
 		t.OTPAttempts++
@@ -335,7 +350,9 @@ func (a *App) succeedLocked(t *Transaction) error {
 		return err
 	}
 	t.Status, t.Stage, t.UpdatedAt = StatusSuccess, "", time.Now().UTC()
-	t.ProviderRef = strings.ToUpper(t.Method[:2]) + randHex(5)
+	if t.Mode != "live" || t.ProviderRef == "" {
+		t.ProviderRef = strings.ToUpper(t.Method[:2]) + randHex(5)
+	}
 	a.enqueueLocked(t.MerchantID, "charge.success", a.txView(t))
 	a.s.markDirty()
 	return nil
@@ -353,7 +370,7 @@ func (a *App) txView(t *Transaction) map[string]any {
 		"fee": t.Fee, "net_amount": t.Amount - t.Fee, "currency": t.Currency, "email": t.Email,
 		"first_name": t.FirstName, "last_name": t.LastName, "payment_method": t.Method,
 		"account": t.Account, "failure_reason": t.FailReason, "created_at": t.CreatedAt,
-		"updated_at": t.UpdatedAt,
+		"updated_at": t.UpdatedAt, "livemode": t.Mode == "live",
 	}
 }
 
@@ -426,6 +443,10 @@ func (a *App) CreateTransfer(m Merchant, in TransferReq) (map[string]any, error)
 	if err := a.prov.ValidateDestination(bank, in.AccountNumber); err != nil {
 		return nil, bad(err.Error())
 	}
+	return a.createTransfer(m, in, bank)
+}
+
+func (a *App) createTransfer(m Merchant, in TransferReq, bank Bank) (map[string]any, error) {
 	if in.Amount < MinAmount || in.Amount > MaxAmount {
 		return nil, bad("amount must be between 1.00 and 1000000.00 ETB")
 	}
@@ -434,6 +455,10 @@ func (a *App) CreateTransfer(m Merchant, in TransferReq) (map[string]any, error)
 	if _, dup := a.s.xferIdx[m.ID+"|"+in.Reference]; dup {
 		return nil, conflict("reference already used")
 	}
+	lp, pcreds, live, rerr := a.routeLocked(a.s.d.Merchants[m.ID], "bank_payout")
+	if rerr != nil {
+		return nil, bad("live payouts are not available yet")
+	}
 	total := in.Amount + a.cfg.PayoutFee
 	if a.s.d.Balances[acctMerchant(m.ID)] < total {
 		return nil, bad("insufficient balance: need " + total.String() + " ETB including the " + a.cfg.PayoutFee.String() + " ETB payout fee")
@@ -441,7 +466,10 @@ func (a *App) CreateTransfer(m Merchant, in TransferReq) (map[string]any, error)
 	now := time.Now().UTC()
 	t := &Transfer{ID: "tr_" + randHex(8), MerchantID: m.ID, Reference: in.Reference,
 		AccountName: clip(in.AccountName, 80), AccountNumber: in.AccountNumber, BankCode: bank.Code,
-		Amount: in.Amount, Fee: a.cfg.PayoutFee, Currency: "ETB", Status: StatusPending, CreatedAt: now, UpdatedAt: now}
+		Amount: in.Amount, Fee: a.cfg.PayoutFee, Currency: "ETB", Mode: "sandbox", Status: StatusPending, CreatedAt: now, UpdatedAt: now}
+	if live {
+		t.Mode = "live"
+	}
 	// Hold funds immediately so the same balance can't be spent twice.
 	if err := a.s.postLocked(t.ID, "payout hold "+t.Reference,
 		Line{Account: acctMerchant(m.ID), Debit: total},
@@ -452,7 +480,13 @@ func (a *App) CreateTransfer(m Merchant, in TransferReq) (map[string]any, error)
 	a.s.d.Transfers[t.ID] = t
 	a.s.xferIdx[m.ID+"|"+t.Reference] = t.ID
 	a.s.markDirty()
-	time.AfterFunc(a.cfg.PayoutDelay, func() { a.settleTransfer(t.ID) })
+	if live {
+		go a.livePayout(t.ID, lp, pcreds, LivePayout{TransferID: t.ID, Reference: t.Reference, Amount: t.Amount,
+			Currency: t.Currency, BankCode: t.BankCode, AccountName: t.AccountName, AccountNumber: t.AccountNumber,
+			CallbackURL: a.callbackURL(a.cfg.BaseURL, "bank_payout")})
+	} else {
+		time.AfterFunc(a.cfg.PayoutDelay, func() { a.settleTransfer(t.ID) })
+	}
 	return a.transferView(t), nil
 }
 
@@ -464,6 +498,11 @@ func (a *App) settleTransfer(id string) {
 		return
 	}
 	ok, reason := a.prov.PayoutOutcome(t.AccountNumber)
+	a.finishTransferLocked(t, ok, reason)
+}
+
+// finishTransferLocked settles a pending payout, sandbox or live. s.mu must be held.
+func (a *App) finishTransferLocked(t *Transfer, ok bool, reason string) {
 	t.UpdatedAt = time.Now().UTC()
 	if ok {
 		_ = a.s.postLocked(t.ID, "payout settled "+t.Reference,
@@ -484,7 +523,7 @@ func (a *App) settleTransfer(id string) {
 func (a *App) transferView(t *Transfer) map[string]any {
 	return map[string]any{"id": t.ID, "reference": t.Reference, "status": t.Status, "amount": t.Amount,
 		"fee": t.Fee, "currency": t.Currency, "bank_code": t.BankCode, "account_name": t.AccountName,
-		"account_number": t.AccountNumber, "failure_reason": t.FailReason, "created_at": t.CreatedAt}
+		"account_number": t.AccountNumber, "failure_reason": t.FailReason, "created_at": t.CreatedAt, "livemode": t.Mode == "live"}
 }
 
 func (a *App) VerifyTransfer(m Merchant, ref string) (map[string]any, error) {

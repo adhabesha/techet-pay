@@ -61,7 +61,7 @@ function setHero(){
   hero.replaceChildren(
     el('div',{class:'lbl'}, 'Pay ' + info.merchant + (info.title ? ' · '+info.title : '')),
     amountEl(info.amount, info.currency),
-    el('div',{class:'chips'}, el('span',{class:'chip'}, '🔒 Secure checkout'), info.description ? el('span',{class:'chip'}, info.description) : null));
+    el('div',{class:'chips'}, el('span',{class:'chip'}, '🔒 Secure checkout'), info.live ? null : el('span',{class:'chip'}, 'Test mode · no real money'), info.description ? el('span',{class:'chip'}, info.description) : null));
 }
 function result(ok){
   const wrap = el('div',{class:'state'},
@@ -77,6 +77,7 @@ function render(){
   if (info.status==='success') return result(true);
   if (info.status==='failed') return result(false);
   if (info.stage==='otp') return otpView();
+  if (info.stage==='redirect' || info.stage==='waiting' || info.stage==='starting') return waitView();
   payView();
 }
 const INITIALS = {telebirr:'TB', cbebirr:'CB', mpesa:'MP', amole:'AM', card:'💳'};
@@ -89,10 +90,12 @@ function payView(){
   const err = el('div',{class:'msg bad',id:'err',role:'alert'});
   if (method){
     const m = info.methods.find(x=>x.code===method);
-    if (m.kind==='wallet'){
+    if (m.kind==='card' && info.live){
+      form.append(el('div',{class:'hint'},'You will enter your card details on the card processor’s secure page. We never see or store them.'));
+    } else if (m.kind==='wallet'){
       form.append(el('label',{for:'phone'},'Your '+m.name+' phone number'),
         el('input',{id:'phone',name:'phone',inputmode:'tel',autocomplete:'tel',placeholder:'09 11 22 33 44',required:true}),
-        el('div',{class:'hint'},'Sandbox: any valid number works. A number ending in 0000 simulates an empty wallet.'));
+        info.live ? null : el('div',{class:'hint'},'Sandbox: any valid number works. A number ending in 0000 simulates an empty wallet.'));
     } else {
       form.append(el('label',{for:'cn'},'Card number'),
         el('input',{id:'cn',name:'card_number',inputmode:'numeric',autocomplete:'cc-number',placeholder:'4242 4242 4242 4242',required:true}),
@@ -111,6 +114,23 @@ async function submit(e){
   const b = $('#go'); b.disabled = true;
   try { await api('/pay', f); info = await api('/info'); render(); }
   catch(x){ $('#err').textContent = x.message; b.disabled = false; }
+}
+let pollTimer = null;
+function waitView(){
+  const kids = [];
+  if (info.stage==='redirect'){
+    kids.push(el('h3',{},'Continue to complete your payment'),
+      el('p',{class:'hint'},'You will finish this payment on the provider’s secure page. Keep this page open: it updates by itself.'),
+      el('a',{class:'btn block',href:info.redirect_url,rel:'noopener'},'Continue'));
+  } else {
+    kids.push(el('h3',{},'Approve the payment'),
+      el('p',{class:'hint'},'Check your phone and approve the request from '+(info.account||'your wallet')+'. This page updates by itself.'));
+  }
+  card.replaceChildren(...kids);
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async()=>{
+    try{ const n = await api('/info'); if (n.status!=='pending' || n.stage!==info.stage){ info=n; clearInterval(pollTimer); render(); } }catch{}
+  }, 3000);
 }
 function otpView(){
   const form = el('form',{onsubmit:async ev=>{

@@ -13,14 +13,16 @@ import (
 )
 
 type data struct {
-	Merchants  map[string]*Merchant    `json:"merchants"`
-	Txs        map[string]*Transaction `json:"txs"`
-	Ledger     []LedgerEntry           `json:"ledger"`
-	Balances   map[string]Money        `json:"balances"` // credit-normal: credits - debits
-	Transfers  map[string]*Transfer    `json:"transfers"`
-	Deliveries map[string]*Delivery    `json:"deliveries"`
-	Sessions   map[string]*Session     `json:"sessions"` // key = sha256(token)
-	Seq        int64                   `json:"seq"`
+	Merchants  map[string]*Merchant       `json:"merchants"`
+	Txs        map[string]*Transaction    `json:"txs"`
+	Ledger     []LedgerEntry              `json:"ledger"`
+	Balances   map[string]Money           `json:"balances"` // credit-normal: credits - debits
+	Transfers  map[string]*Transfer       `json:"transfers"`
+	Deliveries map[string]*Delivery       `json:"deliveries"`
+	Sessions   map[string]*Session        `json:"sessions"` // key = sha256(token)
+	Seq        int64                      `json:"seq"`
+	Providers  map[string]*ProviderConfig `json:"providers"`
+	Audit      []AuditEntry               `json:"audit"`
 }
 
 // Store is an in-memory database guarded by one mutex, snapshotted atomically
@@ -47,6 +49,7 @@ func newStore(path string, remote *Remote) (*Store, error) {
 		Merchants: map[string]*Merchant{}, Txs: map[string]*Transaction{},
 		Balances: map[string]Money{}, Transfers: map[string]*Transfer{},
 		Deliveries: map[string]*Delivery{}, Sessions: map[string]*Session{},
+		Providers: map[string]*ProviderConfig{},
 	}
 	loaded := false
 	if remote != nil {
@@ -78,6 +81,9 @@ func newStore(path string, remote *Remote) (*Store, error) {
 		} else if !os.IsNotExist(err) {
 			return nil, err
 		}
+	}
+	if s.d.Providers == nil {
+		s.d.Providers = map[string]*ProviderConfig{}
 	}
 	s.reindex()
 	if path != "" || remote != nil {

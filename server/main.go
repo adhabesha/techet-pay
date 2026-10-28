@@ -42,6 +42,7 @@ func defaultConfig() Config {
 		AllowPrivateWebhooks: os.Getenv("TECHET_ALLOW_PRIVATE_WEBHOOKS") == "1",
 		AdminEmail:           strings.ToLower(env("TECHET_ADMIN_EMAIL", "admin@techet.pay")),
 		AdminPassword:        os.Getenv("TECHET_ADMIN_PASSWORD"),
+		SecretKey:            os.Getenv("TECHET_SECRET_KEY"),
 		PayoutDelay:          3 * time.Second,
 		TxTTL:                30 * time.Minute,
 		Backoff:              []time.Duration{5 * time.Second, 30 * time.Second, 2 * time.Minute, 10 * time.Minute, time.Hour},
@@ -53,7 +54,15 @@ func NewApp(cfg Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &App{cfg: cfg, s: s, prov: SandboxProvider{}, lim: newLimiter(), adm: newAdminSessions()}, nil
+	app := &App{cfg: cfg, s: s, prov: SandboxProvider{}, lim: newLimiter(), adm: newAdminSessions()}
+	if cfg.SecretKey != "" {
+		v, err := newVault(cfg.SecretKey)
+		if err != nil {
+			return nil, err
+		}
+		app.vault = v
+	}
+	return app, nil
 }
 
 func listenAddr() string {
@@ -97,6 +106,12 @@ func main() {
 // baseURL is the public address used in checkout links. It comes from
 // TECHET_BASE_URL (or Render's RENDER_EXTERNAL_URL), else from the request.
 func (a *App) baseURL(r *http.Request) string {
+	u := a.baseURLRaw(r)
+	a.lastBase.Store(u)
+	return u
+}
+
+func (a *App) baseURLRaw(r *http.Request) string {
 	if a.cfg.BaseURL != "" {
 		return a.cfg.BaseURL
 	}
@@ -328,7 +343,7 @@ func (a *App) Routes() http.Handler {
 		if !decode(w, r, &in) {
 			return
 		}
-		if err := a.Pay(r.PathValue("token"), in); err != nil {
+		if err := a.PayAt(r.PathValue("token"), in, a.baseURL(r)); err != nil {
 			fail(w, err)
 			return
 		}
@@ -454,6 +469,7 @@ func (a *App) Routes() http.Handler {
 	}))
 
 	a.adminRoutes(mux)
+	mux.HandleFunc("/callbacks/{provider}", a.limit("callback", 600, a.providerCallback))
 
 	mux.HandleFunc("GET /assets/{file}", func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("file")
@@ -493,7 +509,7 @@ func (a *App) Routes() http.Handler {
 
 func merchantView(m Merchant) map[string]any {
 	return map[string]any{"id": m.ID, "name": m.Name, "email": m.Email, "public_key": m.PublicKey,
-		"secret_key_hint": m.SecretHint, "webhook_url": m.WebhookURL, "webhook_secret": m.WebhookSecret}
+		"live_enabled": m.LiveEnabled, "secret_key_hint": m.SecretHint, "webhook_url": m.WebhookURL, "webhook_secret": m.WebhookSecret}
 }
 
 // LedgerCheck proves the books balance: debits == credits across all entries.

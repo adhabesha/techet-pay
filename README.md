@@ -122,3 +122,29 @@ Local run: `cd desktop && npm install && TECHET_SERVER_URL=http://localhost:8080
 The public landing page is served at `/` (`server/web/landing.html`). Fee numbers come from the server settings;
 download links point to `github.com/<TECHET_REPO>/releases` (default `adhabesha/techet-pay`, override with the `TECHET_REPO` env var).
 Palette: primary lime `#75C400`, icon green `#91DA33`, dark neutral `#222629`, slate `#353E45`, background `#F3F7F8`.
+
+
+## Connecting real providers (Telebirr, CBE Birr, M-Pesa, Amole, cards, bank payouts)
+
+The **sandbox always stays on** for every merchant, before and after you go live.
+
+1. **Admin panel, Providers page:** one card per provider with fields for the credentials they give you after the
+   contract, a Sandbox/Live switch, "Test connection", and the callback address to give the provider.
+   Credentials are encrypted (AES-256-GCM) with `TECHET_SECRET_KEY` before they are stored, are never shown again
+   and never appear in logs, the audit log or backups in readable form.
+2. **One file per provider:** `server/provider_telebirr.go`, `provider_cbebirr.go`, `provider_mpesa.go`,
+   `provider_amole.go`, `provider_card.go`, `provider_bank_payout.go`. Each is a documented placeholder that refuses to run.
+   When you have a provider's integration guide, implement `Check`, `Charge` (or `Payout`) and `ParseCallback` in that file
+   (callbacks MUST verify the provider's signature), set `Implemented()` to true and enter the credentials.
+   A provider cannot go Live until its adapter is implemented, the required fields are filled in and a connection test passed.
+3. **Merchant "Live access":** on the Merchants page you decide which verified businesses use real providers.
+   Everyone else keeps using the sandbox. A live merchant is never silently downgraded to the sandbox.
+4. **Safety built in:** live callbacks are signature-checked by the adapter, the amount is compared with our record,
+   replays are ignored, card details never touch the server in live mode (the adapter redirects to the processor's page),
+   every sensitive admin action lands in the **audit log**, and **System > Download backup** exports everything.
+
+### Before taking real money
+- Use `render.production.yaml` (paid instance that does not sleep) and keep the Upstash database, or move to a managed Postgres.
+- Set `TECHET_SECRET_KEY` (24+ random characters) and keep a copy somewhere safe.
+- Download a backup regularly (System page).
+- Sign the provider agreements and check the National Bank of Ethiopia licensing requirements for holding or moving other businesses' money.

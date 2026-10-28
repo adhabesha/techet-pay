@@ -84,6 +84,14 @@
     .who{margin:0;padding:4px}
   }
   @media(max-width:520px){.kpis{grid-template-columns:1fr}.menu button span{display:none}}
+  .prov{margin-bottom:14px}
+  .pfs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0}
+  .pf label{display:block;font-size:12.5px;font-weight:700;margin-bottom:5px}
+  .pf .ok{color:var(--lime2,#5FA800);font-weight:800}
+  .pf input,.pf textarea{width:100%;box-sizing:border-box;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card2,var(--card));color:var(--ink);font:inherit}
+  .tagx{font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:99px;background:var(--card2,#eee);color:var(--muted)}
+  .tagx.good{background:#D8F5EA;color:#0B7A53}
+  .btn[disabled]{opacity:.45;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -117,10 +125,10 @@ const svg = n => { const s = document.createElementNS('http://www.w3.org/2000/sv
 function money(v){ const [w,d='00']=String(v).split('.'); const neg=w.startsWith('-'); return (neg?'-':'')+Number(w.replace('-','')).toLocaleString('en-US')+'.'+d; }
 function when(iso){ try{ return new Date(iso).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
 function toast(t){ const x=el('div',{class:'toast'},t); document.body.append(x); setTimeout(()=>x.remove(),2200); }
-async function api(path, body){
+async function api(path, body, method){
   const opt = {headers:{}};
   if (token) opt.headers.Authorization = 'Bearer '+token;
-  if (body !== undefined){ opt.method='POST'; opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  if (body !== undefined){ opt.method=method||'POST'; opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
   const r = await fetch('/admin/api'+path, opt);
   const j = await r.json().catch(()=>({message:'Network error'}));
   if (r.status===401 && token){ signOut(true); throw new Error(j.message); }
@@ -152,9 +160,9 @@ function loginView(msg){
 }
 
 /* ---------- shell ---------- */
-const NAV = [['overview','Overview','grid'],['merchants','Merchants','users'],['payments','Payments','card'],['payouts','Payouts','send'],['webhooks','Webhooks','hook'],['system','System','shield']];
+const NAV = [['overview','Overview','grid'],['merchants','Merchants','users'],['payments','Payments','card'],['payouts','Payouts','send'],['providers','Providers','coin'],['webhooks','Webhooks','hook'],['system','System','shield']];
 const TITLES = {overview:['Overview','Everything happening across your gateway'],merchants:['Merchants','Businesses using Xidex'],payments:['Payments','Every payment across all merchants'],
-  payouts:['Payouts','Money sent out to bank and wallet accounts'],webhooks:['Webhooks','Delivery log for merchant callbacks'],system:['System','Ledger integrity and configuration']};
+  payouts:['Payouts','Money sent out to bank and wallet accounts'],providers:['Providers','Connect Telebirr, CBE Birr, M-Pesa, Amole, cards and bank payouts'],webhooks:['Webhooks','Delivery log for merchant callbacks'],system:['System','Ledger integrity, audit log and backup']};
 
 function shell(content){
   const o = data.overview;
@@ -231,12 +239,16 @@ function vMerchants(){
   const list=(data.merchants||[]).filter(m=>!q||(m.name+' '+m.email).toLowerCase().includes(q.toLowerCase()));
   if(!list.length) return el('div',{class:'glass'},empty('No merchants found'));
   return el('div',{class:'scroll'}, el('table',{class:'tbl'},
-    el('thead',{},el('tr',{},['Business','Joined','Payments','Volume','Balance','Status',''].map((h,i)=>el('th',{class:i>=2&&i<=4?'r':''},h)))),
+    el('thead',{},el('tr',{},['Business','Joined','Payments','Volume','Balance','Status','Live access',''].map((h,i)=>el('th',{class:i>=2&&i<=4?'r':''},h)))),
     el('tbody',{}, list.map(m=>el('tr',{},
       el('td',{},el('b',{},m.name),el('div',{class:'sm'},m.email)),
       el('td',{},when(m.created_at)),
       el('td',{class:'r'},m.payments), el('td',{class:'r'},el('b',{},money(m.volume))), el('td',{class:'r'},money(m.balance)),
       el('td',{},pill(m.suspended?'suspended':'active')),
+      el('td',{},el('button',{class:'btn mini '+(m.live?'':'light'),title:'Live merchants use real providers; everyone else stays in the sandbox',onclick:async()=>{
+        if(!m.live && !confirm('Give '+m.name+' LIVE access? Their customers will be charged through real providers (once a provider is switched to Live). Only do this after you have verified the business.')) return;
+        try{ await api('/merchants/'+m.id+'/live',{enabled:!m.live}); toast(m.live?'Back to sandbox only':'Live access granted'); load(true); }catch(x){ toast(x.message); }
+      }}, m.live?'Live ✓':'Sandbox')),
       el('td',{class:'r'},el('button',{class:'btn mini '+(m.suspended?'light':'danger'),onclick:async()=>{
         if(!m.suspended && !confirm('Suspend '+m.name+'? They will be signed out and their API key stops working.')) return;
         try{ await api('/merchants/'+m.id+'/suspend',{suspended:!m.suspended}); toast(m.suspended?'Merchant reactivated':'Merchant suspended'); load(); }catch(x){ toast(x.message); }
@@ -260,6 +272,44 @@ function vPayouts(){
       el('td',{class:'r'},el('b',{},money(t.amount))), el('td',{class:'r'},money(t.fee)),
       el('td',{},pill(t.status),t.failure_reason?el('div',{class:'sm'},t.failure_reason):null), el('td',{},when(t.created_at))))))) : el('div',{class:'glass'},empty('No payouts yet'));
 }
+function copyText(t){ try{ navigator.clipboard.writeText(t); toast('Copied'); }catch(e){ prompt('Copy:',t); } }
+function vProviders(){
+  const list = data.providers||[];
+  if (!list.length) return el('div',{class:'glass'},empty('Loading…'));
+  const banner = !list[0].vault_ready ? el('div',{class:'glass',style:'border-color:#E5A52A;margin-bottom:14px'},
+    el('h3',{},'One setup step before you can save credentials'),
+    el('p',{class:'small'},'Add an environment variable named ',el('b',{},'TECHET_SECRET_KEY'),' on your server (Render, Environment tab) with 24 or more random characters, then let it restart. Credentials are encrypted with it. Keep a copy somewhere safe: if it is lost you must enter the credentials again.')) : null;
+  const intro = el('div',{class:'glass',style:'margin-bottom:14px'},
+    el('p',{class:'small',style:'margin:0'},'The ',el('b',{},'sandbox is always on'),' for every merchant so they can test. A merchant only reaches a real provider when the provider is switched to ',el('b',{},'Live'),' here AND you gave that merchant ',el('b',{},'Live access'),' on the Merchants page. Enter the credentials your provider gave you, press Test connection, then switch to Live.'));
+  const cards = list.map(p=>{
+    const inputs = {};
+    const fieldEls = p.fields.map(f=>{
+      const ph = f.set ? '•••••• saved' : (f.hint||'');
+      const i = f.multiline ? el('textarea',{rows:'3',placeholder:ph,autocomplete:'off',spellcheck:'false'}) : el('input',{type:f.secret?'password':'text',placeholder:ph,autocomplete:'off',spellcheck:'false'});
+      inputs[f.key]=i;
+      return el('div',{class:'pf'}, el('label',{},f.label+(f.required?' *':''), f.set?el('span',{class:'ok'},' ✓ saved'):null), i);
+    });
+    const collect = ()=>{ const o={}; for(const k in inputs){ if(inputs[k].value.trim()) o[k]=inputs[k].value.trim(); } return o; };
+    const save = async(mode)=>{ try{ await api('/providers/'+p.code,{mode,fields:collect()},'PUT'); toast('Saved'); load(true); }catch(x){ toast(x.message); } };
+    const lc = p.last_check;
+    return el('div',{class:'glass prov'},
+      el('div',{class:'row',style:'justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap'},
+        el('h3',{style:'margin:0'},p.name),
+        el('div',{class:'row',style:'gap:8px'}, pill(p.mode==='live'?'success':'pending'), el('b',{class:'sm'},p.mode==='live'?'LIVE':'SANDBOX'),
+          el('span',{class:'tagx'+(p.implemented?' good':'')}, p.implemented?'Adapter ready':'Adapter not implemented yet'))),
+      el('p',{class:'small muted'},p.kind==='payout'?'Sends merchant withdrawals to banks.':'Takes customer payments.'),
+      el('div',{class:'pfs'}, fieldEls),
+      el('div',{class:'kv'},el('span',{},'Callback address (give this to the provider)'), el('span',{}, el('code',{class:'k'},p.callback_url), ' ', el('button',{class:'btn mini light',onclick:()=>copyText(p.callback_url)},'Copy'))),
+      lc ? el('div',{class:'kv'},el('span',{},'Last connection test'),el('span',{}, (lc.ok?'✓ ':'✕ ')+lc.message+' · '+when(lc.at))) : null,
+      !p.implemented ? el('p',{class:'small muted'},'This provider can be configured but not switched live until its adapter (server/provider_'+p.code+'.go) is written from the integration guide you receive after signing.') : null,
+      el('div',{class:'row',style:'gap:8px;flex-wrap:wrap;margin-top:12px'},
+        el('button',{class:'btn',onclick:()=>save(p.mode)},'Save credentials'),
+        el('button',{class:'btn light',onclick:async()=>{ try{ if(Object.keys(collect()).length) await api('/providers/'+p.code,{mode:p.mode,fields:collect()},'PUT'); const m=await api('/providers/'+p.code+'/check',{}); toast(m||'Connection OK'); }catch(x){ toast(x.message); } load(true); }},'Test connection'),
+        p.mode==='live' ? el('button',{class:'btn danger',onclick:()=>{ if(confirm('Switch '+p.name+' back to sandbox? Live merchants will be refused until it is live again.')) save('sandbox'); }},'Switch to sandbox')
+                        : el('button',{class:'btn light',disabled:!p.implemented,onclick:()=>{ if(confirm('Switch '+p.name+' to LIVE? Merchants with Live access will be charged real money through it.')) save('live'); }},'Go live')));
+  });
+  return el('div',{}, banner, intro, ...cards);
+}
 function vWebhooks(){
   const list=data.deliveries||[];
   return list.length ? el('div',{class:'scroll'},el('table',{class:'tbl'},
@@ -278,9 +328,24 @@ function vSystem(){
       el('div',{class:'kv'},el('span',{},'Platform fee'),el('span',{},(o.fee_percent??'')+'%')),
       el('div',{class:'kv'},el('span',{},'Payout fee'),el('span',{},money(o.payout_fee||'0.00')+' ETB')),
       el('div',{class:'kv'},el('span',{},'Mode'),el('span',{},'Sandbox (simulated providers)')),
-      el('p',{class:'small muted'},'Fees, the admin login and storage are set with environment variables on your host (TECHET_FEE_BPS, TECHET_PAYOUT_FEE, TECHET_ADMIN_EMAIL, TECHET_ADMIN_PASSWORD).')));
+      el('p',{class:'small muted'},'Fees, the admin login and storage are set with environment variables on your host (TECHET_FEE_BPS, TECHET_PAYOUT_FEE, TECHET_ADMIN_EMAIL, TECHET_ADMIN_PASSWORD, TECHET_SECRET_KEY).')),
+    el('div',{class:'glass'},el('h3',{},'Backup'),
+      el('p',{class:'small muted'},'Download everything (merchants, payments, ledger, settings). Provider credentials stay encrypted inside it. The file contains merchant password hashes, so keep it private. Make one regularly.'),
+      el('button',{class:'btn',onclick:downloadBackup},'Download backup')),
+    el('div',{class:'glass',style:'grid-column:1/-1'},el('h3',{},'Audit log'),
+      (data.audit&&data.audit.length) ? el('div',{class:'scroll'},el('table',{class:'tbl'},
+        el('thead',{},el('tr',{},['When','Who','Action','Details','From'].map(h=>el('th',{},h)))),
+        el('tbody',{},data.audit.slice(0,100).map(a=>el('tr',{},el('td',{},when(a.at)),el('td',{},a.actor),el('td',{},el('b',{},a.action)),el('td',{},a.detail||'—'),el('td',{},a.ip||'—')))))) : empty('Nothing recorded yet')));
 }
-const VIEWS={overview:vOverview,merchants:vMerchants,payments:vPayments,payouts:vPayouts,webhooks:vWebhooks,system:vSystem};
+async function downloadBackup(){
+  try{
+    const r = await fetch('/admin/api/backup',{headers:{Authorization:'Bearer '+token}});
+    if(!r.ok) throw new Error('Backup failed');
+    const b = await r.blob(); const a = el('a',{href:URL.createObjectURL(b),download:'xidex-backup-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json'});
+    document.body.append(a); a.click(); a.remove(); toast('Backup downloaded'); load(true);
+  }catch(x){ toast(x.message); }
+}
+const VIEWS={overview:vOverview,merchants:vMerchants,payments:vPayments,payouts:vPayouts,providers:vProviders,webhooks:vWebhooks,system:vSystem};
 
 function render(keepFocus){ window._focusSearch=!!keepFocus; if(!token) return loginView(); shell(VIEWS[page]()); }
 async function load(quiet){
@@ -291,7 +356,8 @@ async function load(quiet){
     else if(page==='payments') data.txs=await api('/transactions?status='+encodeURIComponent(fstatus)+'&q='+encodeURIComponent(q));
     else if(page==='payouts') data.transfers=await api('/transfers');
     else if(page==='webhooks') data.deliveries=await api('/deliveries');
-    else if(page==='system'){ [data.ledger,data.overview]=await Promise.all([api('/ledger-check'),api('/overview')]); }
+    else if(page==='providers') data.providers=await api('/providers');
+    else if(page==='system'){ [data.ledger,data.overview,data.audit]=await Promise.all([api('/ledger-check'),api('/overview'),api('/audit')]); }
     if(!data.overview && page!=='overview') data.overview=await api('/overview');
     render(quiet===true);
   }catch(x){ if(token) toast(x.message); }

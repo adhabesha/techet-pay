@@ -1,0 +1,28 @@
+# Render Blueprint: PRODUCTION version: same as render.yaml but on a paid instance that never sleeps.
+services:
+  - type: web
+    name: techet-pay
+    runtime: docker
+    plan: starter          # paid instance: never sleeps (needed for real payments and provider callbacks)
+    region: frankfurt          # closest Render region to Ethiopia
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      # Free Upstash Redis database (console.upstash.com, no card needed).
+      # Render asks you for these two values when you create the Blueprint.
+      # Admin panel login (/admin). Render generates the password: see the
+      # service's Environment tab. Email defaults to admin@techet.pay.
+      - key: TECHET_ADMIN_EMAIL
+        value: admin@techet.pay
+      - key: TECHET_ADMIN_PASSWORD
+        generateValue: true
+      # Encrypts provider credentials entered in the admin Providers page.
+      # Generated once. Keep a copy: if it is lost the credentials must be re-entered.
+      - key: TECHET_SECRET_KEY
+        generateValue: true
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false

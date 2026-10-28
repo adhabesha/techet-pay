@@ -91,6 +91,7 @@ type Merchant struct {
 	WebhookURL    string    `json:"webhook_url"`
 	WebhookSecret string    `json:"webhook_secret"`
 	Suspended     bool      `json:"suspended"`
+	LiveEnabled   bool      `json:"live_enabled"` // owner-approved for real payments; everyone else uses the sandbox
 	CreatedAt     time.Time `json:"created_at"`
 }
 
@@ -115,6 +116,8 @@ type Transaction struct {
 	OTPAttempts   int       `json:"otp_attempts"`
 	FailReason    string    `json:"fail_reason"`
 	ProviderRef   string    `json:"provider_ref"`
+	Mode          string    `json:"mode"` // "sandbox" (default, also when empty) or "live"
+	RedirectURL   string    `json:"redirect_url"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	ExpiresAt     time.Time `json:"expires_at"`
@@ -140,6 +143,7 @@ type Transfer struct {
 	Amount        Money     `json:"amount"`
 	Fee           Money     `json:"fee"`
 	Currency      string    `json:"currency"`
+	Mode          string    `json:"mode"`
 	Status        string    `json:"status"`
 	FailReason    string    `json:"fail_reason"`
 	CreatedAt     time.Time `json:"created_at"`
@@ -177,4 +181,15 @@ type Config struct {
 	Backoff              []time.Duration
 	AdminEmail           string
 	AdminPassword        string
+	SecretKey            string // encrypts provider credentials at rest
+}
+
+// AuditEntry records every sensitive owner action. Values of credentials are never written here.
+type AuditEntry struct {
+	ID     int64     `json:"id"`
+	At     time.Time `json:"at"`
+	Actor  string    `json:"actor"`
+	Action string    `json:"action"`
+	Detail string    `json:"detail"`
+	IP     string    `json:"ip"`
 }

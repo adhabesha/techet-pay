@@ -11,6 +11,7 @@ services:
       TECHET_FEE_BPS: ${TECHET_FEE_BPS:-250}
       TECHET_ADMIN_EMAIL: ${TECHET_ADMIN_EMAIL:-admin@techet.pay}
       TECHET_ADMIN_PASSWORD: ${TECHET_ADMIN_PASSWORD:-}   # required to enable /admin
+      TECHET_SECRET_KEY: ${TECHET_SECRET_KEY:-}
     volumes:
       - techet-data:/data
 volumes:

@@ -18,6 +18,10 @@ services:
         value: admin@techet.pay
       - key: TECHET_ADMIN_PASSWORD
         generateValue: true
+      # Encrypts provider credentials entered in the admin Providers page.
+      # Generated once. Keep a copy: if it is lost the credentials must be re-entered.
+      - key: TECHET_SECRET_KEY
+        generateValue: true
       - key: UPSTASH_REDIS_REST_URL
         sync: false
       - key: UPSTASH_REDIS_REST_TOKEN
