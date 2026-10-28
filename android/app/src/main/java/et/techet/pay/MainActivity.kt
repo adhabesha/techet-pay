@@ -12,11 +12,8 @@ import et.techet.pay.ui.GlassBackground
 import et.techet.pay.ui.Root
 import et.techet.pay.ui.TechETTheme
 import et.techet.pay.ui.ThemeState
-import androidx.compose.foundation.isSystemInDarkTheme
 
 class MainActivity : ComponentActivity() {
-    private var systemChecked = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -25,11 +22,6 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             val vm: AppViewModel = viewModel()
-            val prefs = getSharedPreferences("techet", MODE_PRIVATE)
-            if (!prefs.contains("dark") && !systemChecked) {
-                systemChecked = true
-                ThemeState.dark = isSystemInDarkTheme()
-            }
             val dark = ThemeState.dark
             DisposableEffect(dark) {
                 val bar = if (dark) SystemBarStyle.dark(AndroidColor.TRANSPARENT)

@@ -63,26 +63,13 @@ import androidx.compose.ui.window.Dialog
 import et.techet.pay.AppTab
 import et.techet.pay.data.moneyParts
 
-/** Full-screen background: flat light or near-black surface with one soft lime glow. */
+/** Full-screen background: flat light (default) or near-black surface. No gradients. */
 @Composable
 fun GlassBackground(content: @Composable BoxScope.() -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(TP.Ice)
-            .drawBehind {
-                val w = size.width
-                val glow = Offset(w * 1.0f, 0f)
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(TP.Blue400.copy(alpha = if (ThemeState.dark) 0.22f else 0.45f), Color.Transparent),
-                        center = glow,
-                        radius = w * 0.95f
-                    ),
-                    radius = w * 0.95f,
-                    center = glow
-                )
-            },
+            .background(TP.Ice),
         content = content
     )
 }
@@ -107,40 +94,15 @@ fun GlassCard(
     )
 }
 
-/** Dark translucent navy sheet with a grabber, like the Transactions panel in the reference. */
+/** Flat black panel with a grabber, like the transactions card on the landing page. */
 @Composable
 fun NavyPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(topStart = 34.dp, topEnd = 34.dp, bottomStart = 28.dp, bottomEnd = 28.dp)
+    val shape = RoundedCornerShape(28.dp)
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(
-                Brush.verticalGradient(
-                    listOf(TP.Navy700.copy(alpha = 0.86f), TP.Navy900.copy(alpha = 0.94f))
-                )
-            )
-            .drawBehind {
-                drawRect(
-                    brush = Brush.radialGradient(
-                        colors = listOf(TP.Blue500.copy(alpha = 0.45f), Color.Transparent),
-                        center = Offset(size.width, 0f),
-                        radius = size.width * 0.9f
-                    )
-                )
-            }
-            .background(
-                Brush.verticalGradient(
-                    0f to Color.White.copy(alpha = 0.14f),
-                    0.3f to Color.Transparent,
-                    1f to Color.Transparent
-                )
-            )
-            .border(
-                1.dp,
-                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.40f), Color.White.copy(alpha = 0.05f))),
-                shape
-            )
+            .background(TP.Navy900)
             .padding(start = 18.dp, end = 18.dp, top = 10.dp, bottom = 12.dp)
     ) {
         Box(
@@ -149,7 +111,7 @@ fun NavyPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.()
                 .width(44.dp)
                 .height(5.dp)
                 .clip(RoundedCornerShape(50))
-                .background(Color.White.copy(alpha = 0.32f))
+                .background(Color.White.copy(alpha = 0.22f))
         )
         Spacer(Modifier.height(12.dp))
         content()
@@ -206,10 +168,7 @@ fun GlassChip(text: String) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(
-                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.26f), Color.White.copy(alpha = 0.10f)))
-            )
-            .border(1.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(50))
+            .background(TP.Navy900)
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(text, color = Color.White, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
@@ -218,46 +177,29 @@ fun GlassChip(text: String) {
 
 @Composable
 fun HeroBalanceCard(balance: String, chips: List<String>) {
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(30.dp)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(16.dp, shape, ambientColor = TP.Navy900, spotColor = TP.Navy700)
             .clip(shape)
-            .background(Brush.linearGradient(listOf(TP.Navy700, TP.Navy900)))
+            .background(TP.Blue400)
             .drawBehind {
-                drawRect(
-                    brush = Brush.radialGradient(
-                        colors = listOf(TP.Blue400.copy(alpha = 0.80f), Color.Transparent),
-                        center = Offset(size.width, 0f),
-                        radius = size.width * 0.95f
+                // flat concentric rings, no gradient
+                val c = Offset(size.width * 0.86f, size.height * 0.12f)
+                for (i in 1..5) {
+                    drawCircle(
+                        color = Color(0xFF111312).copy(alpha = 0.07f),
+                        radius = size.width * 0.12f * i,
+                        center = c,
+                        style = Stroke(width = 1.5.dp.toPx())
                     )
-                )
-                drawRect(
-                    brush = Brush.radialGradient(
-                        colors = listOf(TP.Blue500.copy(alpha = 0.35f), Color.Transparent),
-                        center = Offset(0f, size.height),
-                        radius = size.width * 0.7f
-                    )
-                )
+                }
             }
-            .background(
-                Brush.linearGradient(
-                    0f to Color.White.copy(alpha = 0.22f),
-                    0.4f to Color.Transparent,
-                    1f to Color.Transparent
-                )
-            )
-            .border(
-                1.dp,
-                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.55f), Color.White.copy(alpha = 0.06f))),
-                shape
-            )
             .padding(22.dp)
     ) {
-        Text("Available balance", color = TP.Blue200, fontSize = 13.sp)
+        Text("Available balance", color = TP.Navy900.copy(alpha = 0.7f), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(4.dp))
-        MoneyText(balance, 38, Color.White, TP.Blue300)
+        MoneyText(balance, 38, TP.Navy900, TP.Navy900.copy(alpha = 0.7f))
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (c in chips) GlassChip(c)
@@ -275,17 +217,8 @@ fun ActivityTile(label: String, icon: ImageVector, onClick: () -> Unit, modifier
         Box(
             modifier = Modifier
                 .size(68.dp)
-                .shadow(10.dp, shape, ambientColor = TP.Navy900, spotColor = TP.Navy900)
                 .clip(shape)
-                .background(Brush.linearGradient(listOf(TP.Navy700, TP.Navy900)))
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.White.copy(alpha = 0.34f),
-                        0.55f to Color.Transparent,
-                        1f to Color.Transparent
-                    )
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.40f), shape),
+                .background(TP.Navy900),
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = label, tint = TP.Blue400, modifier = Modifier.size(28.dp))
@@ -316,10 +249,8 @@ fun FloatingNavBar(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(66.dp)
-                .shadow(14.dp, pill, ambientColor = TP.Navy900.copy(alpha = 0.4f), spotColor = TP.Navy900.copy(alpha = 0.4f))
                 .clip(pill)
-                .background(NavFill)
-                .border(1.dp, GlassBorder, pill),
+                .background(TP.Navy900),
             verticalAlignment = Alignment.CenterVertically
         ) {
             NavItem(Icons.Filled.Home, "Home", selected == AppTab.Home, { onSelect(AppTab.Home) }, Modifier.weight(1f))
@@ -332,17 +263,11 @@ fun FloatingNavBar(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .size(66.dp)
-                .shadow(14.dp, CircleShape, ambientColor = TP.Navy900, spotColor = TP.Navy900)
                 .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(TP.Blue400, TP.Blue600)))
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.White.copy(alpha = 0.40f),
-                        0.55f to Color.Transparent,
-                        1f to Color.Transparent
-                    )
-                )
-                .border(3.dp, Color.White.copy(alpha = 0.85f), CircleShape)
+                .background(TP.Ice)
+                .padding(5.dp)
+                .clip(CircleShape)
+                .background(TP.Blue400)
                 .clickable(onClick = onPlus),
             contentAlignment = Alignment.Center
         ) {
@@ -353,16 +278,22 @@ fun FloatingNavBar(
 
 @Composable
 private fun NavItem(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier) {
-    val tint = if (selected) TP.Blue400 else Color.White.copy(alpha = 0.6f)
-    Column(
-        modifier = modifier
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(23.dp))
-        Spacer(Modifier.height(2.dp))
-        Text(label, color = tint, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    Box(modifier = modifier.clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        if (selected) {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(TP.Blue400)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(icon, contentDescription = label, tint = TP.Navy900, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(label, color = TP.Navy900, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+            }
+        } else {
+            Icon(icon, contentDescription = label, tint = Color.White.copy(alpha = 0.65f), modifier = Modifier.size(23.dp))
+        }
     }
 }
 
@@ -403,7 +334,7 @@ fun LineChart(values: List<Double>, modifier: Modifier = Modifier) {
         fill.close()
         drawPath(
             path = fill,
-            brush = Brush.verticalGradient(listOf(TP.Blue500.copy(alpha = 0.38f), Color.Transparent))
+            color = TP.Blue400.copy(alpha = 0.18f)
         )
         drawPath(
             path = line,
@@ -544,7 +475,7 @@ fun LogoMark(size: Dp) {
         modifier = Modifier
             .size(size)
             .clip(shape)
-            .background(Brush.linearGradient(listOf(TP.Blue400, TP.Blue600)))
+            .background(TP.Blue400)
             .background(ButtonSheen)
             .border(1.dp, Color.White.copy(alpha = 0.4f), shape),
         contentAlignment = Alignment.Center

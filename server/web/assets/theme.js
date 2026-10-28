@@ -8,10 +8,7 @@
     var m = document.querySelector('meta[name=theme-color]');
     if (m) m.setAttribute('content', v === 'dark' ? '#0C0D0C' : '#EFF0EE');
   }
-  apply(stored() || sys());
-  if (window.matchMedia) {
-    try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { if (!stored()) apply(sys()); }); } catch (e) {}
-  }
+  apply(stored() || 'light'); // every app starts in light mode until the user switches
   window.tpTheme = {
     get: function () { return d.getAttribute('data-theme'); },
     toggle: function () {

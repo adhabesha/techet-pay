@@ -51,7 +51,7 @@ val GlassBorder: Brush get() = Brush.linearGradient(listOf(TP.Line, TP.Line))
 /** The floating navigation pill is black in both modes. */
 val NavFill: Brush get() = Brush.verticalGradient(listOf(Color(0xFF111312), Color(0xFF111312)))
 
-val ButtonBrush: Brush = Brush.linearGradient(listOf(TP.Blue400, TP.Blue500))
+val ButtonBrush: Brush = Brush.linearGradient(listOf(TP.Blue400, TP.Blue400))
 
 val ButtonSheen: Brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
 

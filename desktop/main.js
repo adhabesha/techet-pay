@@ -15,7 +15,8 @@ const startUrl = base + (isAdmin ? '/admin' : '/dashboard');
 const title = isAdmin ? 'Xidex Admin' : 'Xidex';
 const origin = new URL(base).origin;
 
-const dark = nativeTheme.shouldUseDarkColors;
+nativeTheme.themeSource = 'light'; // always start in light mode
+const dark = false;
 const WAKING = 'data:text/html;charset=utf-8,' + encodeURIComponent(`<!doctype html><meta charset=utf-8>
 <body style="margin:0;height:100vh;display:grid;place-items:center;font:16px system-ui;color:${dark ? '#F2F4F1' : '#111311'};background:${dark ? '#0C0D0C' : '#EFF0EE'}">
 <div style="text-align:center"><div style="display:inline-block;padding:6px 18px;border-radius:99px;background:#91DA33;color:#0F1210;font-weight:800;font-size:20px">${title}</div>

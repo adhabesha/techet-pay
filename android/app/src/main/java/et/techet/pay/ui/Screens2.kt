@@ -120,8 +120,7 @@ private fun TransferRow(t: Transfer) {
             modifier = Modifier
                 .size(42.dp)
                 .clip(shape)
-                .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.26f), Color.White.copy(alpha = 0.08f))))
-                .border(1.dp, Color.White.copy(alpha = 0.22f), shape),
+                .background(Color.White.copy(alpha = 0.08f)),
             contentAlignment = Alignment.Center
         ) {
             Text(t.bankCode.take(2).uppercase(), color = TP.Blue200, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)

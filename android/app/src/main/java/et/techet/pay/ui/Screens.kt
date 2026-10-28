@@ -368,24 +368,15 @@ fun HomeContent(vm: AppViewModel, onCreate: () -> Unit, onOpenTx: (Tx) -> Unit) 
 @Composable
 private fun StatTile(label: String, value: String, dark: Boolean, modifier: Modifier) {
     val shape = RoundedCornerShape(22.dp)
-    val brush = if (dark) Brush.linearGradient(listOf(TP.Navy700, TP.Navy900))
-    else Brush.linearGradient(listOf(TP.Blue400.copy(alpha = 0.92f), TP.Blue200.copy(alpha = 0.88f)))
+    val bg = if (dark) TP.Navy900 else TP.Blue400
     val fg = if (dark) Color.White else TP.Navy900
     Column(
         modifier = modifier
             .clip(shape)
-            .background(brush)
-            .background(
-                Brush.linearGradient(
-                    0f to Color.White.copy(alpha = if (dark) 0.26f else 0.45f),
-                    0.45f to Color.Transparent,
-                    1f to Color.Transparent
-                )
-            )
-            .border(1.dp, Color.White.copy(alpha = 0.35f), shape)
+            .background(bg)
             .padding(16.dp)
     ) {
-        Text(label, color = fg.copy(alpha = 0.85f), fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
+        Text(label, color = fg.copy(alpha = 0.8f), fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(2.dp))
         Text(value, color = fg, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
@@ -418,8 +409,7 @@ fun TxRow(t: Tx, onClick: () -> Unit) {
             modifier = Modifier
                 .size(42.dp)
                 .clip(shape)
-                .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.26f), Color.White.copy(alpha = 0.08f))))
-                .border(1.dp, Color.White.copy(alpha = 0.22f), shape),
+                .background(Color.White.copy(alpha = 0.08f)),
             contentAlignment = Alignment.Center
         ) {
             Text(

@@ -83,7 +83,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 .weight(1f)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(34.dp))
-                .background(Brush.linearGradient(listOf(TP.Blue400, TP.Blue500))),
+                .background(TP.Blue400),
             contentAlignment = Alignment.Center
         ) {
             Box(
