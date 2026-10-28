@@ -46,13 +46,13 @@ jobs:
       - name: Collect APK
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist/TechET-Pay.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/Xidex.apk
           ls -la dist
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TechET-Pay-apk
-          path: dist/TechET-Pay.apk
+          name: Xidex-apk
+          path: dist/Xidex.apk
 
       - name: Move the apk-latest tag to this commit
         run: |
@@ -63,8 +63,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-latest
-          name: TechET Pay Android APK (latest)
+          name: Xidex Android APK (latest)
           body: |
-            Debug-signed APK of the TechET Pay merchant app.
-            Install: download TechET-Pay.apk on your phone, open it, and allow "install unknown apps" for your browser/files app when asked.
-          files: dist/TechET-Pay.apk
+            Debug-signed APK of the Xidex merchant app.
+            Install: download Xidex.apk on your phone, open it, and allow "install unknown apps" for your browser/files app when asked.
+          files: dist/Xidex.apk

@@ -60,11 +60,13 @@ fun Root(vm: AppViewModel) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 LogoMark(72.dp)
                 Spacer(Modifier.height(16.dp))
-                Text("TechET Pay", color = TP.Navy800, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+                Text("Xidex", color = TP.Ink, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.height(6.dp))
                 Text("Connecting to the server…", color = TP.Muted, fontSize = 14.sp)
             }
         }
+    } else if (vm.merchant == null && !vm.onboarded) {
+        OnboardingScreen(onDone = { vm.finishOnboarding() })
     } else if (vm.merchant == null) {
         AuthScreen(vm)
     } else {
@@ -97,7 +99,7 @@ fun AuthScreen(vm: AppViewModel) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             LogoMark(48.dp)
             Spacer(Modifier.width(12.dp))
-            Text("TechET Pay", color = TP.Navy800, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+            Text("Xidex", color = TP.Ink, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
             Spacer(Modifier.weight(1f))
             Box(
                 modifier = Modifier
@@ -156,7 +158,7 @@ fun AuthScreen(vm: AppViewModel) {
         Spacer(Modifier.height(16.dp))
         Text(
             text = if (showServer) "Hide server settings" else "Server settings",
-            color = TP.Navy700,
+            color = TP.Ink,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
                 .clickable { showServer = !showServer }
@@ -194,7 +196,7 @@ private fun SegButton(text: String, selected: Boolean, onClick: () -> Unit, modi
     ) {
         Text(
             text,
-            color = if (selected) Color.White else TP.Muted,
+            color = if (selected) Color(0xFF222629) else TP.Muted,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp
         )
@@ -260,14 +262,14 @@ fun MainShell(vm: AppViewModel) {
                         .clickable { vm.refreshAll() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh", tint = TP.Navy700, modifier = Modifier.size(22.dp))
+                    Icon(Icons.Filled.Refresh, contentDescription = "Refresh", tint = TP.Ink, modifier = Modifier.size(22.dp))
                 }
             }
             if (vm.busy > 0) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                     color = TP.Blue600,
-                    trackColor = Color.White.copy(alpha = 0.5f)
+                    trackColor = TP.Line
                 )
             }
             val err = vm.error
@@ -329,7 +331,7 @@ fun HomeContent(vm: AppViewModel, onCreate: () -> Unit, onOpenTx: (Tx) -> Unit) 
     GlassCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Statistic", color = TP.Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Text("Last 14 days", color = TP.Navy700, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text("Last 14 days", color = TP.Ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(8.dp))
         val series = o?.series ?: emptyList()
@@ -366,7 +368,7 @@ fun HomeContent(vm: AppViewModel, onCreate: () -> Unit, onOpenTx: (Tx) -> Unit) 
 @Composable
 private fun StatTile(label: String, value: String, dark: Boolean, modifier: Modifier) {
     val shape = RoundedCornerShape(22.dp)
-    val brush = if (dark) Brush.linearGradient(listOf(TP.Navy700, TP.Blue600))
+    val brush = if (dark) Brush.linearGradient(listOf(TP.Navy700, TP.Navy900))
     else Brush.linearGradient(listOf(TP.Blue400.copy(alpha = 0.92f), TP.Blue200.copy(alpha = 0.88f)))
     val fg = if (dark) Color.White else TP.Navy900
     Column(

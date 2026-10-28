@@ -1,13 +1,13 @@
 {
- "name": "TechET Pay",
- "short_name": "TechET Pay",
- "description": "Merchant dashboard for TechET Pay",
+ "name": "Xidex",
+ "short_name": "Xidex",
+ "description": "Merchant dashboard for Xidex",
  "id": "/dashboard",
  "start_url": "/dashboard",
  "scope": "/dashboard",
  "display": "standalone",
- "background_color": "#BBD9F3",
- "theme_color": "#0A1740",
+ "background_color": "#EFF0EE",
+ "theme_color": "#111312",
  "icons": [
   {
    "src": "/assets/icon-192.png",

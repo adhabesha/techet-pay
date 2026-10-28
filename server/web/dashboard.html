@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TechET Pay · Merchant dashboard</title>
+<title>Xidex · Merchant dashboard</title>
 <link rel="icon" href="/assets/logo.svg">
 <link rel="manifest" href="/manifest-dashboard.webmanifest">
-<meta name="theme-color" content="#0A1740">
+<meta name="theme-color" content="#EFF0EE">
+<script src="/assets/theme.js"></script>
 <link rel="apple-touch-icon" href="/assets/icon-192.png">
 
 <link rel="stylesheet" href="/assets/techet.css">
@@ -36,6 +37,7 @@ const ICONS = {
   link:'M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1',
   key:'M21 2l-2 2m-7.6 7.6a5.5 5.5 0 11-7.8 7.8 5.5 5.5 0 017.8-7.8zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
   refresh:'M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0114.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0020.5 15',
+  arrow:'M7 17L17 7M8 7h9v9',
   out:'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9'
 };
 function icon(name){
@@ -70,6 +72,29 @@ async function copy(text, btn){
   try{ await navigator.clipboard.writeText(text); const t=btn.textContent; btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent=t,1500);}catch{ prompt('Copy this:', text); }
 }
 
+/* ---------- onboarding (first launch only) ---------- */
+const SLIDES = [
+  {ic:'link', t:'Get paid anywhere in Ethiopia', d:'Create a payment link in seconds and share it with any customer on any phone.'},
+  {ic:'list', t:'Every wallet, one checkout', d:'Telebirr, CBE Birr, M-Pesa, Amole and cards, all in a single hosted page.'},
+  {ic:'refresh', t:'Watch every birr live', d:'See balance, fees and payments update as they happen, with webhooks to your app.'},
+  {ic:'send', t:'Withdraw to your bank', d:'Request a payout to any Ethiopian bank whenever you like. Simple, tracked, fast.'}
+];
+function renderOnboarding(i=0){
+  const last = i===SLIDES.length-1, sl = SLIDES[i];
+  const done = ()=>{ try{localStorage.setItem('tp_onboarded','1');}catch{} renderAuth('register'); };
+  root.replaceChildren(
+    el('div',{class:'auth ob'},
+      el('div',{class:'ob-top'}, el('div',{class:'brand'}, el('img',{src:'/assets/logo.svg',alt:''}),'Xidex'),
+        el('span',{class:'grow'}), tpTheme.button('round'), last?null:el('button',{class:'btn light ob-skip',onclick:()=>{try{localStorage.setItem('tp_onboarded','1');}catch{} renderAuth();}},'Skip')),
+      el('div',{class:'hero ob-art'}, el('div',{class:'ob-ic'}, icon(sl.ic))),
+      el('h1',{class:'ob-t'}, sl.t), el('p',{class:'dim ob-d'}, sl.d),
+      el('div',{class:'ob-dots'}, SLIDES.map((_,k)=>el('i',{class:k===i?'on':''}))),
+      el('div',{class:'row'},
+        i>0?el('button',{class:'btn light',onclick:()=>renderOnboarding(i-1)},'Back'):null,
+        el('button',{class:'btn grow',onclick:()=>last?done():renderOnboarding(i+1)}, last?'Create account':'Next')),
+      last?el('button',{class:'ob-link',onclick:()=>{try{localStorage.setItem('tp_onboarded','1');}catch{} renderAuth();}},'I already have an account'):null));
+}
+
 /* ---------- auth ---------- */
 function renderAuth(mode='login'){
   const msg = el('div',{class:'msg bad'});
@@ -86,8 +111,8 @@ function renderAuth(mode='login'){
     el('label',{},'Email'), el('input',{name:'email',type:'email',required:true,autocomplete:'email'}),
     el('label',{},'Password'), el('input',{name:'password',type:'password',required:true,minlength:8,autocomplete:mode==='login'?'current-password':'new-password'}),
     msg, el('button',{class:'btn block',type:'submit'}, mode==='login'?'Sign in':'Create merchant account'));
-  root.replaceChildren(el('div',{class:'auth stack'},
-    el('div',{class:'brand'}, el('img',{src:'/assets/logo.svg',alt:''}),'TechET Pay', el('span',{class:'tag'},'SANDBOX')),
+  root.replaceChildren(el('div',{class:'corner'},tpTheme.button('round')), el('div',{class:'auth stack'},
+    el('div',{class:'brand'}, el('img',{src:'/assets/logo.svg',alt:''}),'Xidex', el('span',{class:'tag'},'SANDBOX')),
     el('p',{class:'dim'},'Accept Telebirr, CBE Birr, M-Pesa, Amole and cards.'),
     el('div',{class:'glass'},
       el('div',{class:'seg'}, el('button',{class:mode==='login'?'on':'',onclick:()=>renderAuth('login')},'Sign in'), el('button',{class:mode==='register'?'on':'',onclick:()=>renderAuth('register')},'Create account')),
@@ -108,6 +133,7 @@ function topbar(title, sub){
   return el('div',{class:'topbar'},
     el('img',{src:'/assets/logo.svg',alt:'',style:'width:44px;height:44px;border-radius:15px'}),
     el('div',{class:'grow'}, el('div',{class:'hello'}, sub), el('div',{class:'name'}, title)),
+    tpTheme.button('round'),
     el('button',{class:'round','aria-label':'Refresh',onclick:()=>renderApp()}, icon('refresh')));
 }
 
@@ -147,10 +173,10 @@ function lineChart(series){
   const ns='http://www.w3.org/2000/svg';
   const svg=document.createElementNS(ns,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('class','chart'); svg.setAttribute('preserveAspectRatio','none');
   const mk=(t,a,txt)=>{const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); if(txt) e.textContent=txt; svg.append(e); return e;};
-  const defs=mk('defs',{}); defs.innerHTML='<linearGradient id="cf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2F86E0" stop-opacity=".35"/><stop offset="1" stop-color="#2F86E0" stop-opacity="0"/></linearGradient>';
+  const defs=mk('defs',{}); defs.innerHTML='<linearGradient id="cf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="g0"/><stop offset="1" class="g1"/></linearGradient>';
   mk('path',{d:d+` L${x(n-1)},${H-B} L${x(0)},${H-B} Z`,fill:'url(#cf)'});
-  mk('path',{d,fill:'none',stroke:'#1F6FD0','stroke-width':3.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'});
-  mk('circle',{cx:pts[n-1][0],cy:pts[n-1][1],r:6,fill:'#fff',stroke:'#143A8F','stroke-width':3});
+  mk('path',{d,class:'ln'});
+  mk('circle',{cx:pts[n-1][0],cy:pts[n-1][1],r:6,class:'dot'});
   series.forEach((s,i)=>{ if(i%3===0||i===n-1) mk('text',{x:x(i),y:H-6,'text-anchor':'middle',class:'axis'},s.date.slice(5)); });
   return svg;
 }
@@ -163,7 +189,7 @@ async function viewHome(main){
   const recent = txs.slice(0,5);
   main.replaceChildren(topbar(me.name,'Welcome back'),
     el('div',{class:'stack'},
-      el('div',{class:'hero'}, el('div',{class:'lbl'},'Available balance'), amountEl(o.available_balance),
+      el('div',{class:'hero'}, el('span',{class:'go'},icon('arrow')), el('div',{class:'lbl'},'Available balance'), amountEl(o.available_balance),
         el('div',{class:'chips'}, el('span',{class:'chip'},'Net earned '+etb(o.net_earned)), el('span',{class:'chip'},'Fee '+o.fee_percent+'%'), el('span',{class:'chip'},o.successful+' paid'))),
       tiles,
       el('div',{class:'glass'},
@@ -273,7 +299,8 @@ if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(req.headers['x-te
 
 (async()=>{
   if (token){ try{ me = await api('/dash/me'); renderApp(); return; }catch{} }
-  renderAuth();
+  let seen=false; try{seen=!!localStorage.getItem('tp_onboarded');}catch{}
+  seen ? renderAuth() : renderOnboarding();
 })();
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>

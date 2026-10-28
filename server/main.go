@@ -80,7 +80,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	go func() {
-		log.Printf("TechET Pay (sandbox) listening on %s", srv.Addr)
+		log.Printf("Xidex (sandbox) listening on %s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
@@ -442,7 +442,7 @@ func (a *App) Routes() http.Handler {
 			return
 		}
 		t, err := a.InitTransaction(m, InitReq{Amount: in.Amount, Email: in.Email, TxRef: "test-" + randHex(6),
-			Title: "Test payment", Description: "Created from your TechET Pay dashboard"})
+			Title: "Test payment", Description: "Created from your Xidex dashboard"})
 		if err != nil {
 			fail(w, err)
 			return
@@ -485,7 +485,7 @@ func (a *App) Routes() http.Handler {
 	mux.HandleFunc("GET /manifest-admin.webmanifest", static("manifest-admin.webmanifest", "application/manifest+json"))
 	mux.HandleFunc("GET /sw.js", static("sw.js", "text/javascript; charset=utf-8"))
 	mux.HandleFunc("GET /dashboard", page("dashboard.html"))
-	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/dashboard", http.StatusFound) })
+	mux.HandleFunc("GET /{$}", a.landing)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
 
 	return secure(mux)
@@ -509,4 +509,20 @@ func (a *App) LedgerCheck() map[string]any {
 		sum += b
 	}
 	return map[string]any{"entries": len(a.s.d.Ledger), "total_debits": dr, "total_credits": cr, "balanced": dr == cr && sum == 0}
+}
+
+// landing serves the public marketing page. Fee numbers come from the live config and the
+// download links from TECHET_REPO (owner/repo of the GitHub project that builds the apps).
+func (a *App) landing(w http.ResponseWriter, r *http.Request) {
+	b, err := webFS.ReadFile("web/landing.html")
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	fee := strconv.FormatFloat(float64(a.cfg.FeeBPS)/100, 'f', -1, 64)
+	repl := strings.NewReplacer("{{FEE}}", fee, "{{PAYOUT_FEE}}", a.cfg.PayoutFee.String(),
+		"{{REPO}}", env("TECHET_REPO", "adhabesha/techet-pay"))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
+	_, _ = w.Write([]byte(repl.Replace(string(b))))
 }

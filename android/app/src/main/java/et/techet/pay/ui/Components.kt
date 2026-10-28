@@ -38,6 +38,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.painterResource
+import et.techet.pay.R
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -61,69 +63,24 @@ import androidx.compose.ui.window.Dialog
 import et.techet.pay.AppTab
 import et.techet.pay.data.moneyParts
 
-/** Full-screen gradient with glowing glass spheres, so translucent cards have something to refract. */
+/** Full-screen background: flat light or near-black surface with one soft lime glow. */
 @Composable
 fun GlassBackground(content: @Composable BoxScope.() -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(TP.Ice, TP.Blue200, TP.Sky)))
+            .background(TP.Ice)
             .drawBehind {
                 val w = size.width
-                val h = size.height
-                // soft colour washes
-                val wash1 = Offset(w * 0.05f, h * 0.04f)
+                val glow = Offset(w * 1.0f, 0f)
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(TP.Blue500.copy(alpha = 0.65f), Color.Transparent),
-                        center = wash1,
-                        radius = w * 0.9f
+                        colors = listOf(TP.Blue400.copy(alpha = if (ThemeState.dark) 0.22f else 0.45f), Color.Transparent),
+                        center = glow,
+                        radius = w * 0.95f
                     ),
-                    radius = w * 0.9f,
-                    center = wash1
-                )
-                val wash2 = Offset(w * 0.1f, h * 0.8f)
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(TP.Navy700.copy(alpha = 0.45f), Color.Transparent),
-                        center = wash2,
-                        radius = w * 0.9f
-                    ),
-                    radius = w * 0.9f,
-                    center = wash2
-                )
-                // glass spheres
-                val r1 = w * 0.40f
-                val c1 = Offset(w * 1.02f, h * 0.20f)
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.85f),
-                            TP.Blue400.copy(alpha = 0.70f),
-                            TP.Blue600.copy(alpha = 0.35f),
-                            Color.Transparent
-                        ),
-                        center = Offset(c1.x - r1 * 0.3f, c1.y - r1 * 0.3f),
-                        radius = r1 * 1.2f
-                    ),
-                    radius = r1,
-                    center = c1
-                )
-                val r2 = w * 0.55f
-                val c2 = Offset(w * -0.05f, h * 0.98f)
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.55f),
-                            TP.Blue500.copy(alpha = 0.60f),
-                            TP.Navy900.copy(alpha = 0.40f),
-                            Color.Transparent
-                        ),
-                        center = Offset(c2.x - r2 * 0.2f, c2.y - r2 * 0.4f),
-                        radius = r2 * 1.2f
-                    ),
-                    radius = r2,
-                    center = c2
+                    radius = w * 0.95f,
+                    center = glow
                 )
             },
         content = content
@@ -320,7 +277,7 @@ fun ActivityTile(label: String, icon: ImageVector, onClick: () -> Unit, modifier
                 .size(68.dp)
                 .shadow(10.dp, shape, ambientColor = TP.Navy900, spotColor = TP.Navy900)
                 .clip(shape)
-                .background(Brush.linearGradient(listOf(TP.Blue500, TP.Navy900)))
+                .background(Brush.linearGradient(listOf(TP.Navy700, TP.Navy900)))
                 .background(
                     Brush.verticalGradient(
                         0f to Color.White.copy(alpha = 0.34f),
@@ -331,7 +288,7 @@ fun ActivityTile(label: String, icon: ImageVector, onClick: () -> Unit, modifier
                 .border(1.dp, Color.White.copy(alpha = 0.40f), shape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(28.dp))
+            Icon(icon, contentDescription = label, tint = TP.Blue400, modifier = Modifier.size(28.dp))
         }
         Spacer(Modifier.height(8.dp))
         Text(label, color = TP.Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
@@ -377,7 +334,7 @@ fun FloatingNavBar(
                 .size(66.dp)
                 .shadow(14.dp, CircleShape, ambientColor = TP.Navy900, spotColor = TP.Navy900)
                 .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(TP.Blue500, TP.Navy800)))
+                .background(Brush.linearGradient(listOf(TP.Blue400, TP.Blue600)))
                 .background(
                     Brush.verticalGradient(
                         0f to Color.White.copy(alpha = 0.40f),
@@ -389,14 +346,14 @@ fun FloatingNavBar(
                 .clickable(onClick = onPlus),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Create payment link", tint = Color.White, modifier = Modifier.size(30.dp))
+            Icon(Icons.Filled.Add, contentDescription = "Create payment link", tint = TP.Navy800, modifier = Modifier.size(30.dp))
         }
     }
 }
 
 @Composable
 private fun NavItem(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier) {
-    val tint = if (selected) TP.Navy700 else TP.Muted
+    val tint = if (selected) TP.Blue400 else Color.White.copy(alpha = 0.6f)
     Column(
         modifier = modifier
             .clickable(onClick = onClick)
@@ -450,12 +407,12 @@ fun LineChart(values: List<Double>, modifier: Modifier = Modifier) {
         )
         drawPath(
             path = line,
-            color = TP.Blue600,
+            color = if (ThemeState.dark) TP.Blue400 else TP.Navy900,
             style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round)
         )
         val last = Offset(xs[n - 1], ys[n - 1])
-        drawCircle(color = Color.White, radius = 6.dp.toPx(), center = last)
-        drawCircle(color = TP.Navy700, radius = 6.dp.toPx(), center = last, style = Stroke(width = 3.dp.toPx()))
+        drawCircle(color = TP.Blue400, radius = 6.dp.toPx(), center = last)
+        drawCircle(color = TP.Navy900, radius = 6.dp.toPx(), center = last, style = Stroke(width = 3.dp.toPx()))
     }
 }
 
@@ -473,7 +430,7 @@ fun TechField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = TP.Navy800,
+            color = TP.Ink,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
@@ -492,8 +449,8 @@ fun TechField(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(shape)
-                        .background(Color.White.copy(alpha = 0.62f))
-                        .border(1.5.dp, Color.White.copy(alpha = 0.9f), shape)
+                        .background(TP.Card)
+                        .border(1.5.dp, TP.Line, shape)
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
                     if (value.isEmpty() && placeholder.isNotEmpty()) {
@@ -530,11 +487,11 @@ fun PrimaryButton(
         if (loading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(22.dp),
-                color = Color.White,
+                color = TP.Navy800,
                 strokeWidth = 2.dp
             )
         } else {
-            Text(text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(text, color = TP.Navy800, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
     }
 }
@@ -552,7 +509,7 @@ fun GhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
             .padding(horizontal = 22.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = TP.Navy800, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(text, color = TP.Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp)
     }
 }
 
@@ -567,13 +524,13 @@ fun PickChip(text: String, selected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .clip(shape)
             .then(base)
-            .border(1.dp, if (selected) Color.White.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.9f), shape)
+            .border(1.dp, if (selected) Color.Transparent else TP.Line, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
         Text(
             text,
-            color = if (selected) Color.White else TP.Navy800,
+            color = if (selected) TP.Navy800 else TP.Ink,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -587,12 +544,12 @@ fun LogoMark(size: Dp) {
         modifier = Modifier
             .size(size)
             .clip(shape)
-            .background(Brush.linearGradient(listOf(TP.Blue600, TP.Navy900)))
+            .background(Brush.linearGradient(listOf(TP.Blue400, TP.Blue600)))
             .background(ButtonSheen)
             .border(1.dp, Color.White.copy(alpha = 0.4f), shape),
         contentAlignment = Alignment.Center
     ) {
-        Text("T", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (size.value * 0.5f).sp)
+        Icon(painterResource(R.drawable.ic_mark), contentDescription = null, tint = Color.White, modifier = Modifier.size(size * 0.56f))
     }
 }
 
@@ -604,7 +561,7 @@ fun GlassDialog(onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Un
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(shape)
-                .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), TP.Blue100.copy(alpha = 0.92f))))
+                .background(Brush.linearGradient(listOf(TP.Card, TP.Card)))
                 .background(GlassSheen)
                 .border(1.dp, GlassBorder, shape)
                 .padding(22.dp),

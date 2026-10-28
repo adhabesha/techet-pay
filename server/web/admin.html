@@ -3,88 +3,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin · TechET Pay</title>
+<title>Admin · Xidex</title>
 <link rel="icon" href="/assets/logo.svg">
 <link rel="manifest" href="/manifest-admin.webmanifest">
-<meta name="theme-color" content="#0A1740">
+<meta name="theme-color" content="#EFF0EE">
 <link rel="apple-touch-icon" href="/assets/icon-192.png">
 
+<script src="/assets/theme.js"></script>
 <link rel="stylesheet" href="/assets/techet.css">
 <style>
-  body:before{top:60px;right:-120px}
-  .shell{display:grid;grid-template-columns:248px minmax(0,1fr);gap:16px;padding:16px;max-width:1500px;margin:0 auto}
-  .side{position:sticky;top:16px;height:calc(100vh - 32px);display:flex;flex-direction:column;padding:18px 14px;border-radius:32px}
-  .side .brand{padding:2px 8px 18px;font-size:18px;white-space:nowrap;gap:8px}
-  .side .brand img{width:34px;height:34px}
-  .side .brand .tag{background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%),linear-gradient(160deg,var(--blue-600),var(--navy-900));color:#fff}
-  .menu{display:flex;flex-direction:column;gap:6px}
-  .menu small{font-size:11px;font-weight:800;letter-spacing:.8px;color:var(--muted);padding:12px 12px 4px}
-  .menu button{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid transparent;border-radius:18px;background:none;cursor:pointer;font-weight:700;color:var(--navy-800);text-align:left}
+  body:before{right:-200px;top:-240px}
+  .shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:16px;padding:16px;max-width:1500px;margin:0 auto}
+  .side{position:sticky;top:16px;height:calc(100vh - 32px);display:flex;flex-direction:column;padding:18px 14px;border-radius:34px}
+  .side .brand{padding:2px 8px 20px;font-size:19px;white-space:nowrap;gap:9px}
+  .side .brand img{width:36px;height:36px}
+  .menu{display:flex;flex-direction:column;gap:5px}
+  .menu small{font-size:11px;font-weight:800;letter-spacing:.9px;color:var(--muted);padding:6px 12px 6px}
+  .menu button{display:flex;align-items:center;gap:12px;padding:13px 15px;border:0;border-radius:99px;background:none;cursor:pointer;font-weight:750;color:var(--muted);text-align:left}
   .menu button svg{width:20px;height:20px;stroke:currentColor;flex:none}
-  .menu button:hover{background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.2));border-color:rgba(255,255,255,.7)}
-  .menu button.on{color:#fff;border-color:rgba(255,255,255,.35);box-shadow:0 14px 24px -12px rgba(10,23,64,.85),inset 0 1px 0 rgba(255,255,255,.45);
-    background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 55%),linear-gradient(160deg,var(--blue-600),var(--navy-900))}
+  .menu button:hover{background:var(--card2);color:var(--ink)}
+  .menu button.on{color:var(--on-lime);background:var(--lime)}
   .side .push{flex:1}
-  .feebox{border-radius:22px;padding:14px;color:#fff;font-size:13px;border:1px solid rgba(255,255,255,.3);
-    background:linear-gradient(115deg,rgba(255,255,255,.24),rgba(255,255,255,0) 45%),radial-gradient(90% 120% at 100% 0%,rgba(95,168,245,.8),transparent 62%),linear-gradient(145deg,rgba(20,58,143,.96),rgba(10,23,64,.96))}
-  .feebox b{display:block;font-size:22px;margin:2px 0}
-  .who{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px;border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.6),rgba(255,255,255,.2));border:1px solid rgba(255,255,255,.8)}
-  .who .av{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(160deg,var(--blue-500),var(--navy-800));flex:none}
+  .feebox{position:relative;overflow:hidden;border-radius:26px;padding:16px;color:var(--on-panel);font-size:13px;background:var(--panel);border:1px solid var(--panel-line)}
+  .feebox:after{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:repeating-radial-gradient(circle,rgba(255,255,255,.07) 0 1.5px,transparent 1.5px 14px)}
+  .feebox b{display:block;font-size:26px;margin:2px 0;color:var(--lime);letter-spacing:-.04em}
+  .who{display:flex;align-items:center;gap:10px;margin-top:12px;padding:8px;border-radius:99px;background:var(--card2);border:1px solid var(--line)}
+  .who .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--on-lime);font-weight:800;background:var(--lime);flex:none}
   .who .em{flex:1;min-width:0;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .who button{border:0;background:none;cursor:pointer;color:var(--muted);padding:4px}
+  .who button{border:0;background:none;cursor:pointer;color:var(--muted);padding:6px}
   .main{min-width:0}
   .bar{display:flex;align-items:center;gap:12px;margin:4px 0 16px;flex-wrap:wrap}
-  .bar h1{margin:0;font-size:28px;letter-spacing:-.5px} .bar .sub{color:var(--muted);font-size:13px}
+  .bar h1{margin:0;font-size:30px;letter-spacing:-.04em} .bar .sub{color:var(--muted);font-size:13.5px}
   .bar .grow{flex:1;min-width:140px}
-  .search{max-width:260px;padding:11px 16px;border-radius:99px}
+  .search{max-width:260px;padding:12px 18px;border-radius:99px;background:var(--card);border:1px solid var(--line)}
   .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-  .kpi{padding:18px;border-radius:26px;position:relative;overflow:hidden}
-  .kpi .k{font-size:13px;color:var(--muted);font-weight:650;display:flex;justify-content:space-between;align-items:center}
-  .kpi .k i{width:30px;height:30px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(160deg,var(--blue-500),var(--navy-800));border:1px solid rgba(255,255,255,.5)}
-  .kpi .k i svg{width:16px;height:16px;stroke:#fff}
-  .kpi .v{font-size:25px;font-weight:800;letter-spacing:-.6px;margin-top:8px;white-space:nowrap}
-  .kpi .v small{font-size:13px;color:var(--muted);font-weight:650}
+  .kpi{padding:20px;border-radius:30px;position:relative;overflow:hidden}
+  .kpi .k{font-size:13px;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  .kpi .k i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--panel)}
+  .kpi .k i svg{width:16px;height:16px;stroke:var(--lime)}
+  .kpi .v{font-size:27px;font-weight:800;letter-spacing:-.05em;margin-top:10px;white-space:nowrap}
+  .kpi .v small{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:0}
   .kpi .d{font-size:12.5px;color:var(--muted);margin-top:2px}
-  .kpi.dark{color:#fff;border-color:rgba(255,255,255,.3);background:linear-gradient(115deg,rgba(255,255,255,.24),rgba(255,255,255,0) 45%),radial-gradient(90% 120% at 100% 0%,rgba(95,168,245,.8),transparent 62%),linear-gradient(145deg,rgba(20,58,143,.96),rgba(10,23,64,.96))}
-  .kpi.dark .k,.kpi.dark .d,.kpi.dark .v small{color:var(--blue-200)}
-  .kpi.dark .k i{background:rgba(255,255,255,.22)}
+  .kpi.lime{color:var(--on-lime);border-color:transparent;background:linear-gradient(150deg,var(--lime2),var(--lime) 65%,#7FCB22)}
+  .kpi.lime:after{content:"";position:absolute;right:-80px;top:-80px;width:240px;height:240px;border-radius:50%;background:repeating-radial-gradient(circle,rgba(15,18,16,.08) 0 1.5px,transparent 1.5px 15px)}
+  .kpi.lime .k,.kpi.lime .d,.kpi.lime .v small{color:rgba(15,18,16,.68)}
+  .kpi.lime>*{position:relative;z-index:1}
   .two{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;margin-top:14px}
-  .bars .br{margin:12px 0} .bars .bl{display:flex;justify-content:space-between;font-size:13px;font-weight:650;margin-bottom:5px}
-  .bars .tr{height:10px;border-radius:9px;background:rgba(20,58,143,.14);overflow:hidden}
-  .bars .tr b{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--blue-400),var(--navy-700))}
-  .split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;margin-top:14px;border-radius:34px;overflow:hidden;border:1px solid rgba(255,255,255,.18);box-shadow:var(--dark-shadow);
-    background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 30%),linear-gradient(165deg,rgba(26,58,150,.82),rgba(8,20,64,.94));color:#fff;padding:14px;gap:14px}
-  .split h3{color:#fff;margin:6px 6px 8px}
-  .split .item{padding:11px 8px;border-radius:18px;border-top:0;transition:background .15s}
-  .split .item:hover{background:rgba(255,255,255,.08)}
-  .detail{border-radius:26px;padding:18px;border:1px solid rgba(255,255,255,.22);
-    background:linear-gradient(115deg,rgba(255,255,255,.2),rgba(255,255,255,0) 40%),radial-gradient(80% 90% at 100% 0%,rgba(95,168,245,.55),transparent 65%),linear-gradient(145deg,rgba(47,134,224,.55),rgba(31,111,208,.35));
-    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
-  .detail .amt{font-size:30px;font-weight:800;letter-spacing:-.8px;margin:2px 0 12px}
-  .detail .dk{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.16);font-size:13.5px}
-  .detail .dk span:first-child{color:var(--blue-200)} .detail .dk span:last-child{font-weight:650;text-align:right;word-break:break-all}
-  .tbl{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:14px}
-  .tbl th{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 12px;font-weight:800;white-space:nowrap}
-  .tbl td{padding:12px;background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.22));vertical-align:middle}
-  .tbl td:first-child{border-radius:16px 0 0 16px;border-left:1px solid rgba(255,255,255,.8)}
-  .tbl td:last-child{border-radius:0 16px 16px 0;border-right:1px solid rgba(255,255,255,.8)}
-  .tbl td{border-top:1px solid rgba(255,255,255,.8);border-bottom:1px solid rgba(255,255,255,.6)}
-  .tbl .r{text-align:right} .tbl b{font-weight:750} .tbl .sm{font-size:12px;color:var(--muted)}
+  .bars .br{margin:14px 0} .bars .bl{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;margin-bottom:6px}
+  .bars .tr{height:12px;border-radius:9px;background:var(--card2);overflow:hidden}
+  .bars .tr b{display:block;height:100%;border-radius:9px;background:var(--lime)}
+  .split{position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);margin-top:14px;border-radius:36px;overflow:hidden;
+    background:var(--panel);border:1px solid var(--panel-line);color:var(--on-panel);padding:16px;gap:16px;box-shadow:var(--shadow)}
+  .split h3{color:var(--on-panel);margin:6px 6px 8px;font-size:18px}
+  .split .item{padding:11px 10px;border-radius:20px;border-top:0;transition:background .15s}
+  .split .item:hover{background:rgba(255,255,255,.06)}
+  .split .item.sel{background:var(--lime);color:var(--on-lime)}
+  .split .item.sel .s{color:rgba(15,18,16,.65)} .split .item.sel .ic{background:rgba(15,18,16,.12);color:var(--on-lime)}
+  .detail{position:relative;overflow:hidden;border-radius:28px;padding:20px;color:var(--on-lime);background:linear-gradient(150deg,var(--lime2),var(--lime) 65%,#7FCB22)}
+  .detail .amt{font-size:32px;font-weight:800;letter-spacing:-.05em;margin:2px 0 12px}
+  .detail .dk{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid rgba(15,18,16,.14);font-size:13.5px}
+  .detail .dk span:first-child{opacity:.68} .detail .dk span:last-child{font-weight:700;text-align:right;word-break:break-all}
+  .detail .pill.success{background:var(--panel);color:var(--lime)}
+  .tbl{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:14px}
+  .tbl th{font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 14px;font-weight:800;white-space:nowrap}
+  .tbl td{padding:14px;background:var(--card);vertical-align:middle;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .tbl td:first-child{border-radius:22px 0 0 22px;border-left:1px solid var(--line)}
+  .tbl td:last-child{border-radius:0 22px 22px 0;border-right:1px solid var(--line)}
+  .tbl .r{text-align:right} .tbl b{font-weight:800} .tbl .sm{font-size:12px;color:var(--muted)}
   .scroll{overflow-x:auto}
-  .pill.suspended{background:rgba(253,226,227,.92);color:#B4232A}
-  .pill.active{background:rgba(216,245,234,.92);color:#0B7A53}
-  .mini{padding:7px 14px;font-size:13px}
-  .mini.danger{background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%),linear-gradient(160deg,#E5484D,#8A1C22)}
-  .login{max-width:420px;margin:9vh auto 0;padding:0 16px}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:12px 20px;border-radius:99px;color:#fff;font-weight:650;z-index:60;
-    background:linear-gradient(160deg,var(--blue-600),var(--navy-900));box-shadow:0 18px 30px -12px rgba(10,23,64,.8)}
+  .mini{padding:8px 16px;font-size:13px}
+  .mini.danger{background:#F27073;color:#2A0507}
+  .login{max-width:430px;margin:9vh auto 0;padding:0 16px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:13px 22px;border-radius:99px;color:var(--on-lime);font-weight:750;z-index:60;background:var(--lime);box-shadow:0 18px 30px -12px rgba(0,0,0,.5)}
   @media(max-width:1100px){.kpis{grid-template-columns:1fr 1fr}.two,.split{grid-template-columns:1fr}}
   @media(max-width:860px){
     .shell{grid-template-columns:1fr;padding:10px}
-    .side{position:static;height:auto;flex-direction:row;align-items:center;gap:8px;padding:10px;border-radius:26px;overflow-x:auto}
+    .side{position:static;height:auto;flex-direction:row;align-items:center;gap:8px;padding:10px;border-radius:99px;overflow-x:auto}
     .side .brand{padding:0 6px 0 4px} .side .brand span,.menu small,.feebox,.who .em,.side .push{display:none}
-    .menu{flex-direction:row} .menu button{padding:10px 14px;white-space:nowrap}
-    .who{margin:0;padding:6px}
+    .menu{flex-direction:row} .menu button{padding:11px 14px;white-space:nowrap}
+    .who{margin:0;padding:4px}
   }
   @media(max-width:520px){.kpis{grid-template-columns:1fr}.menu button span{display:none}}
 </style>
@@ -149,14 +146,14 @@ function loginView(msg){
     err);
   const b = el('button',{class:'btn block',type:'submit'},'Sign in to admin');
   f.append(b);
-  $('#app').replaceChildren(el('div',{class:'login stack'},
-    el('div',{class:'brand'},el('img',{src:'/assets/logo.svg',alt:''}),'TechET Pay ',el('span',{class:'tag'},'ADMIN')),
+  $('#app').replaceChildren(el('div',{class:'corner'},tpTheme.button('round')), el('div',{class:'login stack'},
+    el('div',{class:'brand'},el('img',{src:'/assets/logo.svg',alt:''}),'Xidex ',el('span',{class:'tag'},'ADMIN')),
     el('div',{class:'glass'}, el('h3',{},'Gateway control panel'), el('p',{class:'dim'},'Only the gateway owner can sign in here.'), f)));
 }
 
 /* ---------- shell ---------- */
 const NAV = [['overview','Overview','grid'],['merchants','Merchants','users'],['payments','Payments','card'],['payouts','Payouts','send'],['webhooks','Webhooks','hook'],['system','System','shield']];
-const TITLES = {overview:['Overview','Everything happening across your gateway'],merchants:['Merchants','Businesses using TechET Pay'],payments:['Payments','Every payment across all merchants'],
+const TITLES = {overview:['Overview','Everything happening across your gateway'],merchants:['Merchants','Businesses using Xidex'],payments:['Payments','Every payment across all merchants'],
   payouts:['Payouts','Money sent out to bank and wallet accounts'],webhooks:['Webhooks','Delivery log for merchant callbacks'],system:['System','Ledger integrity and configuration']};
 
 function shell(content){
@@ -164,7 +161,7 @@ function shell(content){
   const menu = el('nav',{class:'menu'}, el('small',{},'MENU'),
     NAV.map(([id,label,ic])=>el('button',{class:id===page?'on':'',onclick:()=>{page=id;sel=null;q='';fstatus='';load();}}, svg(ic), el('span',{},label))));
   const side = el('aside',{class:'glass side'},
-    el('div',{class:'brand'},el('img',{src:'/assets/logo.svg',alt:''}),el('span',{},'TechET Pay'),el('span',{class:'tag'},'ADMIN')),
+    el('div',{class:'brand'},el('img',{src:'/assets/logo.svg',alt:''}),el('span',{},'Xidex'),el('span',{class:'tag'},'ADMIN')),
     menu, el('div',{class:'push'}),
     o ? el('div',{class:'feebox'}, 'Platform fee', el('b',{}, o.fee_percent+'%'), 'Payout fee '+money(o.payout_fee)+' ETB') : null,
     el('div',{class:'who'}, el('div',{class:'av'}, (email[0]||'A').toUpperCase()), el('div',{class:'em'}, email),
@@ -172,6 +169,7 @@ function shell(content){
   const [t,sub] = TITLES[page];
   const bar = el('div',{class:'bar'}, el('div',{class:'grow'}, el('h1',{},t), el('div',{class:'sub'},sub)),
     (page==='payments'||page==='merchants') ? el('input',{class:'search',placeholder:'Search…',value:q,oninput:e=>{q=e.target.value;clearTimeout(window._st);window._st=setTimeout(()=>{ if(page==='payments') load(true); else render(true); },250);}}) : null,
+    tpTheme.button('round'),
     el('button',{class:'btn light mini',onclick:()=>load()},'Refresh'));
   $('#app').replaceChildren(el('div',{class:'shell'}, side, el('main',{class:'main'}, bar, content)));
   const s=$('.search'); if(s && window._focusSearch){ s.focus(); s.setSelectionRange(q.length,q.length); }
@@ -179,7 +177,7 @@ function shell(content){
 
 /* ---------- shared bits ---------- */
 function kpi(label, value, sub, ic, dark, unit){
-  return el('div',{class:'glass kpi'+(dark?' dark':'')}, el('div',{class:'k'},label, el('i',{},svg(ic))),
+  return el('div',{class:'glass kpi'+(dark?' lime':'')}, el('div',{class:'k'},label, el('i',{},svg(ic))),
     el('div',{class:'v'}, value, unit?el('small',{},' '+unit):null), sub?el('div',{class:'d'},sub):null);
 }
 function lineChart(series){
@@ -189,11 +187,10 @@ function lineChart(series){
   for(let i=0;i<pts.length-1;i++){ const a=pts[i],b=pts[i+1],cx=(a[0]+b[0])/2; const lo=Math.min(a[1],b[1]),hi=Math.max(a[1],b[1]);
     d+=' C'+cx+','+Math.min(Math.max(a[1],lo),hi)+' '+cx+','+Math.min(Math.max(b[1],lo),hi)+' '+b[0]+','+b[1]; }
   const ns='http://www.w3.org/2000/svg'; const s=document.createElementNS(ns,'svg'); s.setAttribute('viewBox',`0 0 ${W} ${H}`); s.setAttribute('class','chart'); s.style.height='200px';
-  s.innerHTML=`<defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2F86E0" stop-opacity=".5"/><stop offset="1" stop-color="#2F86E0" stop-opacity="0"/></linearGradient>
-  <linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#5FA8F5"/><stop offset="1" stop-color="#143A8F"/></linearGradient></defs>
-  <path d="${d} L${x(vals.length-1)},${H-24} L${x(0)},${H-24} Z" fill="url(#ag)"/><path d="${d}" fill="none" stroke="url(#lg)" stroke-width="3.5" stroke-linecap="round"/>`+
+  s.innerHTML=`<defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="g0"/><stop offset="1" class="g1"/></linearGradient></defs>
+  <path d="${d} L${x(vals.length-1)},${H-24} L${x(0)},${H-24} Z" fill="url(#ag)"/><path d="${d}" class="ln"/>`+
   series.map((p,i)=> (i%3===0||i===series.length-1)?`<text class="axis" x="${x(i)}" y="${H-6}" text-anchor="middle">${p.date.slice(5)}</text>`:'').join('')+
-  pts.map((p,i)=>vals[i]>0?`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#fff" stroke="#143A8F" stroke-width="2.5"/>`:'').join('');
+  pts.map((p,i)=>vals[i]>0?`<circle cx="${p[0]}" cy="${p[1]}" r="5" class="dot"/>`:'').join('');
   return s;
 }
 const pill = st => el('span',{class:'pill '+st}, st);
@@ -220,7 +217,7 @@ function vOverview(){
         el('div',{class:'kv'},el('span',{},'Payouts'),el('span',{},o.payouts_ok+' sent · '+o.payouts_pending+' pending · '+o.payouts_failed+' failed')))),
     el('div',{class:'split'},
       el('div',{}, el('h3',{},'Latest payments'),
-        latest.length ? latest.map(t=>el('button',{class:'item',style:t.tx_ref===(cur&&cur.tx_ref)?'background:linear-gradient(145deg,rgba(47,134,224,.85),rgba(31,111,208,.55));border-radius:18px':'',onclick:()=>{sel=t.tx_ref;render();}},
+        latest.length ? latest.map(t=>el('button',{class:'item'+(t.tx_ref===(cur&&cur.tx_ref)?' sel':''),onclick:()=>{sel=t.tx_ref;render();}},
           el('div',{class:'ic'},(MN[t.payment_method]||'—').slice(0,2).toUpperCase()),
           el('div',{class:'mid'},el('div',{class:'t'},t.merchant),el('div',{class:'s'},t.email||t.tx_ref)),
           el('div',{class:'end'},el('div',{class:'amt'},money(t.amount)),pill(t.status)))) : empty('Payments will appear here')),

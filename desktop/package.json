@@ -1,10 +1,10 @@
 {
-  "name": "techet-pay-desktop",
+  "name": "xidex-desktop",
   "version": "1.0.0",
-  "description": "TechET Pay desktop app (merchant dashboard and admin panel)",
+  "description": "Xidex desktop app (merchant dashboard and admin panel)",
   "main": "main.js",
   "private": true,
-  "author": "TechET",
+  "author": "Xidex",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win nsis --publish never"
@@ -15,7 +15,7 @@
   },
   "build": {
     "appId": "et.techet.pay.desktop",
-    "productName": "TechET Pay",
+    "productName": "Xidex",
     "directories": { "output": "dist", "buildResources": "build" },
     "files": ["main.js", "config.json", "package.json"],
     "win": { "target": "nsis", "icon": "build/icon.ico" },

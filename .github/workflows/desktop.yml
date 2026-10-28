@@ -29,13 +29,13 @@ jobs:
       matrix:
         include:
           - kind: merchant
-            product: "TechET Pay"
+            product: "Xidex"
             appid: et.techet.pay.desktop
-            out: TechET-Pay-Setup.exe
+            out: Xidex-Setup.exe
           - kind: admin
-            product: "TechET Pay Admin"
+            product: "Xidex Admin"
             appid: et.techet.pay.admin
-            out: TechET-Pay-Admin-Setup.exe
+            out: Xidex-Admin-Setup.exe
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -96,11 +96,11 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: desktop-latest
-          name: TechET Pay Windows apps (latest)
+          name: Xidex Windows apps (latest)
           make_latest: false
           body: |
-            Windows installers: TechET-Pay-Setup.exe (merchant) and TechET-Pay-Admin-Setup.exe (owner admin).
+            Windows installers: Xidex-Setup.exe (merchant) and Xidex-Admin-Setup.exe (owner admin).
             Windows may show "Windows protected your PC" because the apps are not code-signed: click More info, then Run anyway.
           files: |
-            out/TechET-Pay-Setup.exe
-            out/TechET-Pay-Admin-Setup.exe
+            out/Xidex-Setup.exe
+            out/Xidex-Admin-Setup.exe

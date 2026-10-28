@@ -17,6 +17,7 @@ import et.techet.pay.data.Merchant
 import et.techet.pay.data.Overview
 import et.techet.pay.data.Transfer
 import et.techet.pay.data.Tx
+import et.techet.pay.ui.ThemeState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -42,6 +43,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var merchant by mutableStateOf<Merchant?>(null)
     var booting by mutableStateOf(true)
     var tab by mutableStateOf(AppTab.Home)
+    var onboarded by mutableStateOf(prefs.getBoolean("onboarded", false))
+
+    fun finishOnboarding() {
+        prefs.edit().putBoolean("onboarded", true).apply()
+        onboarded = true
+    }
 
     var overview by mutableStateOf<Overview?>(null)
     var txs by mutableStateOf<List<Tx>>(emptyList())
@@ -61,7 +68,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val api = ApiClient({ serverUrl }, { token })
 
     init {
+        if (prefs.contains("dark")) ThemeState.dark = prefs.getBoolean("dark", false)
         boot()
+    }
+
+    fun saveTheme(dark: Boolean) {
+        prefs.edit().putBoolean("dark", dark).apply()
     }
 
     private fun launchApi(onError: (String) -> Unit = { error = it }, block: suspend () -> Unit) {

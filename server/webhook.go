@@ -96,7 +96,7 @@ func (a *App) deliver(c *http.Client, d Delivery) {
 	ts := time.Now().Unix()
 	req, _ := http.NewRequest("POST", d.URL, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "TechETPay-Webhooks/1.0")
+	req.Header.Set("User-Agent", "Xidex-Webhooks/1.0")
 	req.Header.Set("X-TechET-Timestamp", strconv.FormatInt(ts, 10))
 	req.Header.Set("X-TechET-Signature", sign(d.Secret, ts, body))
 	req.Header.Set("X-TechET-Delivery", d.ID)

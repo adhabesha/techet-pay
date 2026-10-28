@@ -478,3 +478,24 @@ func TestInstallableAppFiles(t *testing.T) {
 		}
 	}
 }
+
+func TestLandingPage(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.DataPath = ""
+	app, err := NewApp(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := httptest.NewServer(app.Routes())
+	defer ts.Close()
+	resp, err := http.Get(ts.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	s := string(b)
+	if resp.StatusCode != 200 || !strings.Contains(s, "Xidex") || strings.Contains(s, "{{") || !strings.Contains(s, "2.5%") || !strings.Contains(s, "5.00") {
+		t.Fatalf("landing page wrong: status %d, placeholders left: %v", resp.StatusCode, strings.Contains(s, "{{"))
+	}
+}

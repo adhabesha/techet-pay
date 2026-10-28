@@ -1,5 +1,5 @@
 <#
-  TechET Pay - one-shot deploy for Windows PowerShell 5.1+ or PowerShell 7
+  Xidex - one-shot deploy for Windows PowerShell 5.1+ or PowerShell 7
     1. pushes this folder to a new GitHub repository
     2. creates a FREE web service on Render (Docker) that runs the Go server
     3. builds the Android APK on GitHub Actions and downloads it next to this script
@@ -74,7 +74,7 @@ function Get-ErrBody($e) {
 }
 
 Write-Host ""
-Write-Host "  TechET Pay deploy" -ForegroundColor White
+Write-Host "  Xidex deploy" -ForegroundColor White
 Write-Host "  GitHub  ->  Render (free)  ->  Android APK" -ForegroundColor Gray
 
 # ------------------------------------------------------------------ 1. tools
@@ -106,7 +106,7 @@ if (-not $gitName) {
 }
 Run-Native "git" @("add", "-A")
 $dirty = (git status --porcelain | Out-String).Trim()
-if ($dirty) { Run-Native "git" @("commit", "-m", "TechET Pay: Go server, Render blueprint, Android app") }
+if ($dirty) { Run-Native "git" @("commit", "-m", "Xidex: Go server, Render blueprint, Android app") }
 Run-Native "git" @("branch", "-M", "main")
 Ok "Files committed"
 
@@ -117,7 +117,7 @@ gh repo view $full *> $null
 if ($LASTEXITCODE -ne 0) {
     $vis = "--public"
     if ($Private) { $vis = "--private" }
-    Run-Native "gh" @("repo", "create", $full, $vis, "--description", "TechET Pay - payment gateway sandbox (Go) with Android app")
+    Run-Native "gh" @("repo", "create", $full, $vis, "--description", "Xidex - payment gateway sandbox (Go) with Android app")
     Ok "Repository created"
 } else {
     Note "Repository already exists, reusing it."
@@ -264,15 +264,15 @@ if (-not $SkipApk) {
     gh run watch $runId --repo $full --exit-status
     if ($LASTEXITCODE -ne 0) { Die "The APK build failed. Open $repoUrl/actions/runs/$runId and send me the red error." }
 
-    gh release download apk-latest --repo $full --pattern "TechET-Pay.apk" --dir "$PSScriptRoot" --clobber
-    if ($LASTEXITCODE -eq 0) { $apkPath = Join-Path $PSScriptRoot "TechET-Pay.apk"; Ok "APK saved: $apkPath" }
+    gh release download apk-latest --repo $full --pattern "Xidex.apk" --dir "$PSScriptRoot" --clobber
+    if ($LASTEXITCODE -eq 0) { $apkPath = Join-Path $PSScriptRoot "Xidex.apk"; Ok "APK saved: $apkPath" }
     else { Warn "Build finished but the download failed. Get it from $repoUrl/releases/tag/apk-latest" }
 }
 
 # ------------------------------------------------------------------ done
 Write-Host ""
 Write-Host "=====================================================" -ForegroundColor Green
-Write-Host "  TechET Pay is deployed" -ForegroundColor Green
+Write-Host "  Xidex is deployed" -ForegroundColor Green
 Write-Host "=====================================================" -ForegroundColor Green
 Write-Host "  GitHub repo : $repoUrl"
 if ($serviceUrl) {

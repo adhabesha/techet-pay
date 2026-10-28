@@ -64,7 +64,7 @@ fun PayoutsContent(vm: AppViewModel) {
         Text("New payout", color = TP.Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
         Text(
             "Send to",
-            color = TP.Navy800,
+            color = TP.Ink,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 14.dp, bottom = 8.dp)
@@ -155,6 +155,16 @@ fun AccountContent(vm: AppViewModel) {
     var webhook by remember(m?.webhookUrl) { mutableStateOf(m?.webhookUrl ?: "") }
     var confirmRotate by remember { mutableStateOf(false) }
 
+    GlassCard {
+        Text("Appearance", color = TP.Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+        Text(if (ThemeState.dark) "Dark mode is on" else "Light mode is on", color = TP.Muted, fontSize = 14.sp)
+        Spacer(Modifier.height(12.dp))
+        GhostButton(
+            if (ThemeState.dark) "Switch to light mode" else "Switch to dark mode",
+            { ThemeState.dark = !ThemeState.dark; vm.saveTheme(ThemeState.dark) }
+        )
+    }
+    Spacer(Modifier.height(16.dp))
     GlassCard {
         Text(m?.name ?: "", color = TP.Ink, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
         Text(m?.email ?: "", color = TP.Muted, fontSize = 14.sp)
@@ -287,7 +297,7 @@ fun CreatePaymentDialog(vm: AppViewModel, onDismiss: () -> Unit) {
             Text("Valid for 30 minutes.", color = TP.Muted, fontSize = 13.sp)
             Spacer(Modifier.height(10.dp))
             SelectionContainer {
-                Text(link, color = TP.Navy800, fontSize = 13.sp, fontFamily = FontFamily.Monospace)
+                Text(link, color = TP.Ink, fontSize = 13.sp, fontFamily = FontFamily.Monospace)
             }
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

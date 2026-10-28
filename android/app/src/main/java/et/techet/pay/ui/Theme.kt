@@ -1,66 +1,66 @@
 package et.techet.pay.ui
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
+object ThemeState {
+    /** Backed by Compose state, so every screen redraws when it changes. */
+    var dark by mutableStateOf(false)
+}
+
 object TP {
-    val Navy900 = Color(0xFF0A1740)
-    val Navy800 = Color(0xFF0F2262)
-    val Navy700 = Color(0xFF143A8F)
-    val Blue600 = Color(0xFF1F6FD0)
-    val Blue500 = Color(0xFF2F86E0)
-    val Blue400 = Color(0xFF5FA8F5)
-    val Blue300 = Color(0xFF8EC1F2)
-    val Blue200 = Color(0xFFBBD9F3)
-    val Blue100 = Color(0xFFDCEBFA)
-    val Ice = Color(0xFFF2F6FC)
-    val Sky = Color(0xFF86B3EA)
-    val Ink = Color(0xFF0B1B4D)
-    val Muted = Color(0xFF52669A)
+    // Dark surfaces used for panels, buttons and the nav pill (same in both modes)
+    val Navy900 = Color(0xFF111312)
+    val Navy800 = Color(0xFF222629)
+    val Navy700 = Color(0xFF2B3136)
+    val Blue600 = Color(0xFF5FA800)
+    val Blue500 = Color(0xFF75C400)
+    val Blue400 = Color(0xFF91DA33)
+    val Blue300 = Color(0xFFB5E86B)
+    val Blue200 = Color(0xFFD9F2AE)
+    val Blue100 = Color(0xFFEEF8DA)
+    val Sky = Color(0xFFBDE485)
     val Success = Color(0xFF1FB67A)
     val Danger = Color(0xFFE5484D)
     val Warning = Color(0xFFF5A524)
-    val Line = Color(0xFFD3E2F5)
+
+    // Theme-aware tokens
+    val Ice: Color get() = if (ThemeState.dark) Color(0xFF0C0D0C) else Color(0xFFEFF0EE)
+    val Ink: Color get() = if (ThemeState.dark) Color(0xFFF2F4F2) else Color(0xFF111312)
+    val Muted: Color get() = if (ThemeState.dark) Color(0xFF9AA39B) else Color(0xFF6B746C)
+    val Line: Color get() = if (ThemeState.dark) Color(0xFF2A2E2A) else Color(0xFFDDE2DC)
+    val Card: Color get() = if (ThemeState.dark) Color(0xFF181A18) else Color(0xFFFFFFFF)
 }
 
-/** Frosted glass: translucent white gradient (top-left bright, bottom-right clear). */
-val GlassFill: Brush = Brush.linearGradient(
-    listOf(Color.White.copy(alpha = 0.62f), Color.White.copy(alpha = 0.22f))
-)
+/** Card surface: white in light mode, near-black in dark mode. */
+val GlassFill: Brush get() = Brush.linearGradient(listOf(TP.Card, TP.Card))
 
-/** Soft highlight along the top edge of every glass surface. */
-val GlassSheen: Brush = Brush.verticalGradient(
-    0f to Color.White.copy(alpha = 0.40f),
-    0.42f to Color.Transparent,
-    1f to Color.Transparent
-)
+/** No sheen any more: the new style is flat and bold. */
+val GlassSheen: Brush get() = Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
 
-/** Bright rim light that fades out, like the edges of glass. */
-val GlassBorder: Brush = Brush.linearGradient(
-    listOf(Color.White.copy(alpha = 0.95f), Color.White.copy(alpha = 0.25f))
-)
+/** Hairline edge around cards. */
+val GlassBorder: Brush get() = Brush.linearGradient(listOf(TP.Line, TP.Line))
 
-val NavFill: Brush = Brush.verticalGradient(
-    listOf(Color.White.copy(alpha = 0.86f), Color.White.copy(alpha = 0.58f))
-)
+/** The floating navigation pill is black in both modes. */
+val NavFill: Brush get() = Brush.verticalGradient(listOf(Color(0xFF111312), Color(0xFF111312)))
 
-val ButtonBrush: Brush = Brush.linearGradient(listOf(TP.Blue600, TP.Navy900))
+val ButtonBrush: Brush = Brush.linearGradient(listOf(TP.Blue400, TP.Blue500))
 
-val ButtonSheen: Brush = Brush.verticalGradient(
-    0f to Color.White.copy(alpha = 0.32f),
-    0.55f to Color.Transparent,
-    1f to Color.Transparent
-)
+val ButtonSheen: Brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
 
 @Composable
 fun TechETTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = lightColorScheme(
-            primary = TP.Navy700,
-            onPrimary = Color.White,
+        colorScheme = (if (ThemeState.dark) darkColorScheme() else lightColorScheme()).copy(
+            primary = TP.Blue500,
+            onPrimary = TP.Navy800,
             secondary = TP.Blue500,
             background = TP.Ice,
             surface = TP.Ice,

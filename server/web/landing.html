@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xidex · Accept payments in Ethiopia</title>
+<meta name="description" content="Xidex is a payment gateway for Ethiopia: hosted checkout, Telebirr, CBE Birr, M-Pesa, Amole and cards, instant payouts and signed webhooks.">
+<meta name="theme-color" content="#EFF0EE">
+<link rel="icon" href="/assets/logo.svg">
+<link rel="apple-touch-icon" href="/assets/icon-192.png">
+<script src="/assets/theme.js"></script>
+<link rel="stylesheet" href="/assets/techet.css">
+<style>
+  html{scroll-behavior:smooth}
+  body{overflow-x:hidden}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  section{padding:60px 0 20px}
+  h2{font-size:clamp(30px,4.4vw,48px);line-height:1.04;margin:0 0 14px;font-weight:850}
+  .lead{font-size:clamp(16px,2vw,19px);color:var(--muted);max-width:56ch;margin:0}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ink);
+    padding:8px 15px;border-radius:99px;background:var(--card);border:1px solid var(--line);margin-bottom:18px}
+  .eyebrow i{width:9px;height:9px;border-radius:50%;background:var(--lime)}
+  mark{background:var(--lime);color:var(--on-lime);padding:0 .16em;border-radius:.2em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  /* top bar */
+  .top{position:sticky;top:12px;z-index:30;margin:12px auto 0;max-width:1180px;padding:0 12px}
+  .pill-nav{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 16px;border-radius:99px;background:var(--nav);border:1px solid var(--panel-line);box-shadow:0 20px 40px -20px rgba(0,0,0,.6)}
+  .pill-nav .brandx{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .pill-nav .brandx img.lg{width:34px;height:34px;border-radius:11px}
+  .pill-nav .brandx img.wm{height:20px;display:block}
+  .pill-nav nav{margin-left:auto;display:flex;gap:2px}
+  .pill-nav nav a{padding:10px 15px;border-radius:99px;font-weight:700;font-size:14.5px;color:#C5CCC6;text-decoration:none}
+  .pill-nav nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+  .pill-nav .round{width:42px;height:42px;background:rgba(255,255,255,.08);border-color:transparent;box-shadow:none}
+  .pill-nav .round svg{stroke:#fff}
+  .pill-nav .btn{padding:11px 22px;font-size:14.5px}
+  @media(max-width:820px){.pill-nav nav{display:none}.pill-nav .round{margin-left:auto}}
+  /* hero */
+  .hero-l{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center;padding:56px 0 20px}
+  @media(max-width:960px){.hero-l{grid-template-columns:1fr;padding-top:32px}}
+  h1{font-size:clamp(42px,7vw,80px);line-height:.98;margin:0 0 20px;font-weight:850;letter-spacing:-.05em}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+  .cta .btn{padding:16px 30px;font-size:16px}
+  .trust{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+  .trust span{padding:8px 15px;border-radius:99px;font-size:13px;font-weight:750;background:var(--card);border:1px solid var(--line)}
+  /* phone mock */
+  .stage{position:relative;min-height:560px;display:grid;place-items:center}
+  .phone{width:285px;border-radius:46px;padding:9px;background:#0B0C0B;box-shadow:0 40px 70px -30px rgba(0,0,0,.65),0 0 0 2px #2A2D2A inset;position:relative}
+  .phone .screen{border-radius:38px;background:var(--bg);overflow:hidden;padding:34px 14px 14px;position:relative;min-height:560px}
+  .phone .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:92px;height:24px;border-radius:99px;background:#0B0C0B;z-index:3}
+  .mini-top{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .mini-top img{width:30px;height:30px;border-radius:10px}
+  .mini-top small{display:block;color:var(--muted);font-size:10.5px;line-height:1.1} .mini-top b{font-size:14px;letter-spacing:-.02em}
+  .mini-hero{position:relative;overflow:hidden;border-radius:24px;padding:16px;color:var(--on-lime);background:linear-gradient(150deg,var(--lime2),var(--lime) 65%,#7FCB22)}
+  .mini-hero:after{content:"";position:absolute;right:-50px;top:-50px;width:150px;height:150px;border-radius:50%;background:repeating-radial-gradient(circle,rgba(15,18,16,.09) 0 1.5px,transparent 1.5px 13px)}
+  .mini-hero small{opacity:.7;font-size:11px;font-weight:650} .mini-hero b{display:block;font-size:28px;letter-spacing:-.05em;margin:2px 0 8px}
+  .mini-hero .c{display:inline-block;background:rgba(15,18,16,.86);color:#fff;font-size:10px;font-weight:700;padding:4px 9px;border-radius:99px;margin-right:4px}
+  .mini-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0}
+  .mini-tiles i{aspect-ratio:1;border-radius:16px;background:var(--panel);display:grid;place-items:center}
+  .mini-tiles svg{width:17px;height:17px;stroke:var(--lime);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .mini-list{background:var(--panel);color:var(--on-panel);border-radius:24px;padding:8px 12px}
+  .mini-list div{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--panel-line);font-size:11.5px}
+  .mini-list div:first-child{border-top:0}
+  .mini-list em{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.09);color:var(--lime);font-style:normal;font-weight:800;font-size:9.5px;display:grid;place-items:center}
+  .mini-list span{flex:1;font-weight:700} .mini-list b{font-weight:800}
+  .mini-nav{position:absolute;left:14px;right:14px;bottom:14px;height:48px;border-radius:99px;background:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 6px}
+  .mini-nav u{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.07)} .mini-nav u.on{background:var(--lime);width:64px;border-radius:99px}
+  .callout{position:absolute;padding:14px 16px;border-radius:22px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);max-width:230px;font-size:13px;animation:bob 7s ease-in-out infinite}
+  .callout b{display:block;font-size:14px;margin-bottom:2px}
+  .callout .btnx{display:block;margin-top:10px;text-align:center;padding:10px;border-radius:99px;background:var(--lime);color:var(--on-lime);font-weight:800;font-size:12.5px}
+  .callout.c1{left:-60px;top:12px} .callout.c2{right:-10px;bottom:70px;animation-delay:-3.5s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @media(prefers-reduced-motion:reduce){.callout{animation:none}html{scroll-behavior:auto}}
+  @media(max-width:560px){.callout.c1{left:0;top:20px;max-width:190px}.callout.c2{right:0;bottom:30px;max-width:190px}}
+  /* bento features */
+  .bento{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-top:32px}
+  .b{padding:26px;border-radius:34px;position:relative;overflow:hidden;min-height:210px;display:flex;flex-direction:column;justify-content:flex-end}
+  .b h3{margin:0 0 6px;font-size:21px} .b p{margin:0;font-size:15px;color:var(--muted)}
+  .b .ic{position:absolute;left:24px;top:24px;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--panel)}
+  .b .ic svg{width:25px;height:25px;stroke:var(--lime);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .b.s2{grid-column:span 2}.b.s3{grid-column:span 3}.b.s4{grid-column:span 4}
+  .b.lime{color:var(--on-lime);background:linear-gradient(150deg,var(--lime2),var(--lime) 65%,#7FCB22);border-color:transparent}
+  .b.lime p{color:rgba(15,18,16,.7)} .b.lime .ic{background:var(--panel)}
+  .b.dk{background:var(--panel);color:var(--on-panel);border-color:var(--panel-line)} .b.dk p{color:var(--panel-muted)}
+  .b.lime:after,.b.dk:after{content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;border-radius:50%;pointer-events:none;background:repeating-radial-gradient(circle,rgba(15,18,16,.07) 0 1.5px,transparent 1.5px 16px)}
+  .b.dk:after{background:repeating-radial-gradient(circle,rgba(255,255,255,.06) 0 1.5px,transparent 1.5px 16px)}
+  @media(max-width:900px){.bento{grid-template-columns:1fr 1fr}.b.s2,.b.s3,.b.s4{grid-column:span 1}.b.s4{grid-column:span 2}}
+  @media(max-width:560px){.bento{grid-template-columns:1fr}.b.s4{grid-column:span 1}}
+  /* dev */
+  .dev{display:grid;grid-template-columns:1fr 1.1fr;gap:18px;align-items:stretch;margin-top:32px}
+  @media(max-width:900px){.dev{grid-template-columns:1fr}}
+  .steps{display:grid;gap:14px;align-content:start}
+  .step{display:flex;gap:14px;padding:20px;border-radius:28px;align-items:center}
+  .step b.n{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--on-lime);font-weight:850;background:var(--lime)}
+  .step h3{margin:0 0 2px;font-size:17px} .step p{margin:0;color:var(--muted);font-size:14.5px}
+  .code{border-radius:36px;padding:24px;color:#fff;position:relative;overflow:hidden;background:#0E100E;border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow)}
+  .code:after{content:"";position:absolute;right:-90px;top:-90px;width:280px;height:280px;border-radius:50%;background:repeating-radial-gradient(circle,rgba(145,218,51,.10) 0 1.5px,transparent 1.5px 16px)}
+  .code .dots{display:flex;gap:7px;margin-bottom:14px;position:relative;z-index:1}.code .dots i{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.2)}.code .dots i:first-child{background:var(--lime)}
+  .code pre{background:none;border:0;padding:0;margin:0;color:#D4EDA6;font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;position:relative;z-index:1}
+  .code .k{color:#91DA33}.code .s{color:#fff}.code .c{color:#7F8A80}
+  /* pricing */
+  .price{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:32px}
+  @media(max-width:900px){.price{grid-template-columns:1fr}}
+  .pc{padding:30px;border-radius:36px;position:relative;overflow:hidden}
+  .pc .tagx{font-size:12.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;opacity:.7}
+  .pc .big{font-size:clamp(44px,5.5vw,60px);font-weight:850;letter-spacing:-.06em;line-height:1;margin:12px 0 8px}
+  .pc .big small{display:block;font-size:16px;font-weight:700;letter-spacing:0;margin-top:8px;opacity:.65}
+  .pc p{margin:0;opacity:.75}
+  .pc.lime{color:var(--on-lime);background:linear-gradient(150deg,var(--lime2),var(--lime) 65%,#7FCB22);border-color:transparent}
+  .pc.dk{background:var(--panel);color:var(--on-panel);border-color:var(--panel-line)}
+  /* download */
+  .dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:32px}
+  @media(max-width:900px){.dl{grid-template-columns:1fr}}
+  .dc{padding:28px;border-radius:36px;display:flex;flex-direction:column;gap:10px}
+  .dc h3{margin:0;font-size:22px} .dc p{margin:0;color:var(--muted);font-size:15px;flex:1}
+  .dc .btn{margin-top:10px;align-self:flex-start}
+  .dc .os{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--panel)}
+  .dc .os svg{width:28px;height:28px;stroke:var(--lime);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .note{font-size:13px;color:var(--muted);margin-top:16px}
+  /* cta + footer */
+  .big-cta{margin:50px 0 0;padding:56px 28px;border-radius:44px;text-align:center;color:var(--on-lime);position:relative;overflow:hidden;
+    background:linear-gradient(150deg,var(--lime2),var(--lime) 60%,#7FCB22)}
+  .big-cta:after{content:"";position:absolute;left:50%;top:-140px;width:520px;height:520px;transform:translateX(-50%);border-radius:50%;background:repeating-radial-gradient(circle,rgba(15,18,16,.07) 0 1.5px,transparent 1.5px 18px);pointer-events:none}
+  .big-cta>*{position:relative;z-index:1}
+  .big-cta h2{margin:0 0 12px} .big-cta p{margin:0 auto 24px;max-width:48ch;opacity:.75}
+  .big-cta .btn{background:var(--panel);color:var(--on-panel);padding:16px 32px;font-size:16px}
+  .big-cta .btn:hover{background:#000}
+  footer{padding:40px 0 56px;color:var(--muted);font-size:14px}
+  footer .row{flex-wrap:wrap;gap:14px 24px}
+  footer a{color:var(--ink);font-weight:700;text-decoration:none} footer a:hover{text-decoration:underline}
+  footer img.wm{height:24px;display:block}
+  :root[data-theme=dark] footer img.wm{filter:brightness(0) invert(.95)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="pill-nav">
+    <a class="brandx" href="/"><img class="lg" src="/assets/logo.svg" alt=""><img class="wm" src="/assets/wordmark-light.svg" alt="Xidex"></a>
+    <nav aria-label="Main">
+      <a href="#features">Features</a><a href="#developers">Developers</a><a href="#pricing">Pricing</a><a href="#download">Download</a>
+    </nav>
+    <span id="tt"></span>
+    <a class="btn" href="/dashboard">Sign in</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero-l">
+    <div>
+      <span class="eyebrow"><i></i>Payments for Ethiopia</span>
+      <h1>Get paid <mark>anywhere</mark> in Ethiopia.</h1>
+      <p class="lead">Xidex gives your business one simple API and a fast hosted checkout for Telebirr, CBE Birr, M-Pesa, Amole and cards, with instant payouts to your bank.</p>
+      <div class="cta">
+        <a class="btn" href="/dashboard">Create free account</a>
+        <a class="btn dark" href="#download">Download the app</a>
+      </div>
+      <div class="trust"><span>Telebirr</span><span>CBE Birr</span><span>M-Pesa</span><span>Amole</span><span>Visa / Mastercard</span></div>
+    </div>
+    <div class="stage" aria-hidden="true">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="mini-top"><img src="/assets/logo.svg" alt=""><div><small>Welcome back</small><b>Habesha Coffee</b></div></div>
+          <div class="mini-hero"><small>Available balance</small><b>48,250.75</b><span class="c">Fee {{FEE}}%</span><span class="c">128 paid</span></div>
+          <div class="mini-tiles">
+            <i><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg></i>
+            <i><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></i>
+            <i><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></i>
+            <i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i>
+          </div>
+          <div class="mini-list">
+            <div><em>TB</em><span>Telebirr</span><b>1,200.00</b></div>
+            <div><em>CB</em><span>CBE Birr</span><b>480.00</b></div>
+            <div><em>MP</em><span>M-Pesa</span><b>2,500.00</b></div>
+          </div>
+          <div class="mini-nav"><u class="on"></u><u></u><u></u><u></u></div>
+        </div>
+      </div>
+      <div class="callout c1"><b>Hosted checkout</b>Send customers to a secure page that works on any phone.</div>
+      <div class="callout c2"><b>Withdraw instantly</b>Move your balance to any bank in a few taps.<span class="btnx">Request payout</span></div>
+    </div>
+  </div>
+
+  <section id="features">
+    <span class="eyebrow"><i></i>Everything included</span>
+    <h2>One gateway. Every way your customers pay.</h2>
+    <p class="lead">Built like the payment platforms you know, made for how Ethiopians actually pay.</p>
+    <div class="bento">
+      <div class="glass b lime s4"><div class="ic"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/></svg></div><h3>Hosted checkout</h3><p>Send customers to a secure, mobile-first payment page. No card or wallet details ever touch your servers.</p></div>
+      <div class="glass b s2"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a2.8 2.8 0 00-5 1.6c0 3 5 1.7 5 4.6a2.8 2.8 0 01-5 1.6M12 6.5v1.6M12 15.9v1.6"/></svg></div><h3>Wallets and cards</h3><p>Telebirr, CBE Birr, M-Pesa, Amole and cards in one integration.</p></div>
+      <div class="glass b dk s2"><div class="ic"><svg viewBox="0 0 24 24"><path d="M21 3L3 10.5l7 3 3 7L21 3z"/><path d="M10 13.5L21 3"/></svg></div><h3>Instant payouts</h3><p>Move your balance to a bank or wallet in a few taps, or by API.</p></div>
+      <div class="glass b s2"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 6a3 3 0 116 0c0 1.5-1 2.3-2 3.5S12 12 12 14"/><path d="M12 14c0 3-2 5-5 5M12 14c0 2.5 2 5 5 5a3 3 0 100-6"/></svg></div><h3>Signed webhooks</h3><p>Every event is HMAC-signed and retried until you confirm it.</p></div>
+      <div class="glass b s2"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><h3>Books that balance</h3><p>A double-entry ledger records every santim so balances always add up.</p></div>
+      <div class="glass b dk s2"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></div><h3>Apps for every screen</h3><p>Web dashboard, Android app and a Windows desktop app.</p></div>
+    </div>
+  </section>
+
+  <section id="developers">
+    <span class="eyebrow"><i></i>For developers</span>
+    <h2>Live in an <mark>afternoon</mark>.</h2>
+    <p class="lead">Create an account, copy your secret key and start a payment with one request.</p>
+    <div class="dev">
+      <div class="steps">
+        <div class="glass step"><b class="n">1</b><div><h3>Create your account</h3><p>Sign up and get your test keys instantly.</p></div></div>
+        <div class="glass step"><b class="n">2</b><div><h3>Start a payment</h3><p>Call the API and redirect your customer to the checkout link.</p></div></div>
+        <div class="glass step"><b class="n">3</b><div><h3>Get paid, get notified</h3><p>Verify the payment or listen for the signed webhook, then withdraw.</p></div></div>
+      </div>
+      <div class="code">
+        <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="c"># Start a payment</span>
+curl -X POST <span class="s">https://YOUR-DOMAIN/v1/transaction/initialize</span> \
+  -H <span class="s">"Authorization: Bearer TPSECK_TEST-..."</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d '{
+    <span class="k">"amount"</span>: <span class="s">"1200.00"</span>,
+    <span class="k">"currency"</span>: <span class="s">"ETB"</span>,
+    <span class="k">"email"</span>: <span class="s">"customer@example.com"</span>,
+    <span class="k">"tx_ref"</span>: <span class="s">"order-1001"</span>
+  }'
+
+<span class="c"># Response</span>
+{ <span class="k">"status"</span>: <span class="s">"success"</span>,
+  <span class="k">"data"</span>: { <span class="k">"checkout_url"</span>: <span class="s">"https://.../checkout/..."</span> } }</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <span class="eyebrow"><i></i>Simple pricing</span>
+    <h2>Pay only when you get paid.</h2>
+    <p class="lead">No setup fee, no monthly fee, no minimum.</p>
+    <div class="price">
+      <div class="pc lime"><div class="tagx">Per payment</div><div class="big">{{FEE}}%<small>per successful payment</small></div><p>Charged only on payments that succeed. Failed and abandoned payments are free.</p></div>
+      <div class="pc dk"><div class="tagx">Per payout</div><div class="big">{{PAYOUT_FEE}}<small>ETB per payout</small></div><p>A flat fee to send money to a bank or wallet, no matter the amount.</p></div>
+      <div class="glass pc"><div class="tagx">Everything else</div><div class="big">0<small>ETB</small></div><p>Dashboard, apps, webhooks, hosted checkout and the API are included.</p></div>
+    </div>
+  </section>
+
+  <section id="download">
+    <span class="eyebrow"><i></i>Get the apps</span>
+    <h2>In your pocket and on your desktop.</h2>
+    <p class="lead">Sign in with the same account everywhere.</p>
+    <div class="dl">
+      <div class="glass dc"><div class="os"><svg viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg></div><h3>Android app</h3><p>Balance, payments, payouts and payment links on your phone, in light or dark.</p><a class="btn" href="https://github.com/{{REPO}}/releases/download/apk-latest/Xidex.apk">Download APK</a></div>
+      <div class="glass dc"><div class="os"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2.5"/><path d="M8 21h8M12 17v4"/></svg></div><h3>Windows app</h3><p>A standalone desktop app with its own window and icon, in light or dark.</p><a class="btn" href="https://github.com/{{REPO}}/releases/download/desktop-latest/Xidex-Setup.exe">Download for Windows</a></div>
+      <div class="glass dc"><div class="os"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div><h3>Web dashboard</h3><p>Nothing to install. Sign in from any browser, or install it from your browser's menu.</p><a class="btn light" href="/dashboard">Open dashboard</a></div>
+    </div>
+    <p class="note">Windows may show "Windows protected your PC" because the app is not code-signed yet. Choose More info, then Run anyway. On Android, allow "install unknown apps" when asked.</p>
+  </section>
+
+  <div class="big-cta">
+    <h2>Start accepting payments today.</h2>
+    <p>Create your free account and run your first test payment in minutes. Sandbox mode: no real money moves.</p>
+    <a class="btn" href="/dashboard">Create free account</a>
+  </div>
+
+  <footer>
+    <div class="row">
+      <img class="wm" src="/assets/wordmark-dark.svg" alt="Xidex">
+      <span>Sandbox environment: payments are simulated and no real money moves.</span>
+      <span style="margin-left:auto"></span>
+      <a href="/dashboard">Merchant sign in</a><a href="/admin">Owner admin</a>
+    </div>
+  </footer>
+</main>
+<script>document.getElementById('tt').replaceWith(tpTheme.button('round'));</script>
+</body>
+</html>

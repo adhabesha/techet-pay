@@ -111,7 +111,7 @@ func (a *App) Login(email, password string) (string, Merchant, error) {
 		return "", Merchant{}, &apiError{401, "invalid email or password"}
 	}
 	if m.Suspended {
-		return "", Merchant{}, &apiError{403, "this account is suspended, contact TechET Pay support"}
+		return "", Merchant{}, &apiError{403, "this account is suspended, contact Xidex support"}
 	}
 	tok := "sess_" + randHex(24)
 	a.s.mu.Lock()

@@ -1,4 +1,4 @@
-# TechET Pay
+# Xidex
 
 A Chapa-style payment gateway **sandbox**: Go server + hosted checkout + merchant dashboard (web) + native Android merchant app.
 Payment rails (Telebirr, CBE Birr, M-Pesa, Amole, cards, bank payouts) are **simulated**. No real money moves.
@@ -21,7 +21,7 @@ powershell -ExecutionPolicy Bypass -File .\deploy.ps1
 ```
 
 It will: install `git`/`gh` if missing, sign you in to GitHub, push the repo, create a **free Render web service**,
-wait until it is live, build the APK on GitHub Actions, and download `TechET-Pay.apk` next to the script.
+wait until it is live, build the APK on GitHub Actions, and download `Xidex.apk` next to the script.
 
 You need (both free, no card): a **Render API key** (Account Settings > API Keys) and an **Upstash Redis** database
 (console.upstash.com > Create > copy REST URL + REST TOKEN). Upstash keeps accounts and balances alive while the free server sleeps.
@@ -60,7 +60,7 @@ Open the `android/` folder in Android Studio (Ladybug or newer, JDK 17) and pres
 - Emulator: the app defaults to `http://10.0.2.2:8080` (your computer's `go run .` server).
 - Real phone: set the server address on the sign-in screen (`Server settings`) to your Render address.
 - Build from the command line: `cd android && ./gradlew assembleDebug -PserverUrl=https://your-server`.
-- CI: every push touching `android/` builds `TechET-Pay.apk` and publishes it at `Releases > apk-latest`.
+- CI: every push touching `android/` builds `Xidex.apk` and publishes it at `Releases > apk-latest`.
 
 The APK is debug-signed (installable, not Play-Store ready). For Play Store: create a release keystore and a `signingConfigs` block.
 
@@ -106,7 +106,7 @@ Webhooks: `charge.success`, `charge.failed`, `transfer.success`, `transfer.faile
 
 ## Install as a desktop app
 Open `/dashboard` (merchants) or `/admin` (owner) in Chrome or Edge and click the install icon in the address bar
-(or menu, "Install TechET Pay"). Each one gets its own window, Start-menu entry and icon. On Android Chrome use "Add to Home screen".
+(or menu, "Install Xidex"). Each one gets its own window, Start-menu entry and icon. On Android Chrome use "Add to Home screen".
 
 ## Updating the Android app
 The APK is signed with a fixed key (`android/app/techet.keystore`), so a new APK installs over the old one.
@@ -114,6 +114,11 @@ APKs built before that key was added must be uninstalled once first.
 
 ## Windows desktop apps
 `.github/workflows/desktop.yml` builds two installers (merchant and owner admin) with Electron. Each opens the hosted
-site in its own window with a desktop icon, and uses frosted acrylic glass on Windows 11. Download them from the
+site in its own window with a desktop icon, and follows Windows light or dark mode. Download them from the
 `desktop-latest` release. Windows shows "Windows protected your PC" because the apps are unsigned: More info, Run anyway.
 Local run: `cd desktop && npm install && TECHET_SERVER_URL=http://localhost:8080 npm start`.
+
+## Brand and landing page
+The public landing page is served at `/` (`server/web/landing.html`). Fee numbers come from the server settings;
+download links point to `github.com/<TECHET_REPO>/releases` (default `adhabesha/techet-pay`, override with the `TECHET_REPO` env var).
+Palette: primary lime `#75C400`, icon green `#91DA33`, dark neutral `#222629`, slate `#353E45`, background `#F3F7F8`.
