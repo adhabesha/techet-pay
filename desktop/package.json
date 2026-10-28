@@ -18,7 +18,7 @@
     "productName": "Xidex",
     "directories": { "output": "dist", "buildResources": "build" },
     "files": ["main.js", "config.json", "package.json"],
-    "win": { "target": "nsis", "icon": "build/icon.ico" },
+    "win": { "target": "nsis", "icon": "build/icon.png" },
     "nsis": {
       "oneClick": true,
       "perMachine": false,

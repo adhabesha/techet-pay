@@ -52,6 +52,13 @@ jobs:
           printf '{ "serverUrl": "%s", "app": "%s" }\n' "$SERVER_URL" "$KIND" > config.json
           cat config.json
 
+      - name: Use the Xidex logo as the app icon
+        shell: bash
+        run: |
+          mkdir -p desktop/build
+          cp server/web/assets/icon-512.png desktop/build/icon.png
+          rm -f desktop/build/icon.ico
+
       - name: Install
         working-directory: desktop
         run: npm install --no-audit --no-fund

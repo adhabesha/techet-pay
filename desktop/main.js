@@ -36,7 +36,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1360, height: 860, minWidth: 420, minHeight: 600,
     title, show: false, autoHideMenuBar: true,
-    icon: path.join(__dirname, 'build', 'icon.ico'),
+    icon: path.join(__dirname, 'build', 'icon.png'),
     backgroundColor: dark ? '#0C0D0C' : '#EFF0EE',
     webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
   });
